@@ -3,94 +3,1244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DirtyMind AI - Конструктор</title>
+    <title>DirtyMind - Telegram Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            background-color: #121214;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0b0b0d;
             color: #ffffff;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============ HEADER ============ */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #141417 0%, #0f0f11 100%);
+            border-bottom: 1px solid #2a2a2d;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .profile-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .balance-badge {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        .main-content {
+            flex: 1;
+            margin-top: 60px;
+            margin-bottom: 70px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+            padding: 16px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ============ HOME SCREEN ============ */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #1a1a1d, #141417);
+            border: 1px solid #2a2a2d;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 140px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #a855f7;
+            background: linear-gradient(135deg, #1f1a24, #1a1422);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.15);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card.bonus-card {
+            grid-column: 1 / -1;
+            min-height: 100px;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            border: none;
+        }
+
+        .card.bonus-card:hover {
+            border-color: transparent;
+            transform: scale(1.02);
+            box-shadow: 0 12px 35px rgba(168, 85, 247, 0.25);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .card-description {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .bonus-card .card-title {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .bonus-card .card-description {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        /* ============ CHATS SECTION ============ */
+        .section-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 12px;
+            margin-top: 12px;
+        }
+
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-item {
+            background: linear-gradient(135deg, #1a1a1d, #141417);
+            border: 1px solid #2a2a2d;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-items: center;
+        }
+
+        .chat-item:hover {
+            border-color: #a855f7;
+            background: linear-gradient(135deg, #1f1a24, #1a1422);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.1);
+        }
+
+        .chat-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+        }
+
+        .chat-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+
+        .chat-name {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .chat-time {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .chat-preview {
+            font-size: 13px;
+            opacity: 0.7;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ============ CATALOG SCREEN ============ */
+        .characters-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .character-card {
+            background: linear-gradient(135deg, #1a1a1d, #141417);
+            border: 1px solid #2a2a2d;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .character-card:hover {
+            border-color: #a855f7;
+            background: linear-gradient(135deg, #1f1a24, #1a1422);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.15);
+        }
+
+        .character-emoji {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .character-name {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .character-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+
+        .character-tag {
+            background-color: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+
+        .chat-button {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .chat-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.3);
+        }
+
+        .chat-button:active {
+            transform: scale(0.98);
+        }
+
+        /* ============ CREATE SCREEN ============ */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #a855f7;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            background-color: #141417;
+            border: 1px solid #2a2a2d;
+            border-radius: 10px;
+            padding: 12px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #a855f7;
+            background-color: #1a1a1d;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.25);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+        }
+
+        /* ============ QUESTS SCREEN ============ */
+        .quest-item {
+            background: linear-gradient(135deg, #1a1a1d, #141417);
+            border: 1px solid #2a2a2d;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .quest-item:hover {
+            border-color: #a855f7;
+            background: linear-gradient(135deg, #1f1a24, #1a1422);
+        }
+
+        .quest-content {
+            flex: 1;
+        }
+
+        .quest-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .quest-reward {
+            font-size: 12px;
+            color: #a855f7;
+        }
+
+        .quest-button {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 12px;
+        }
+
+        .quest-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+        }
+
+        .quest-button.completed {
+            background-color: #2a5a3a;
+            color: #7fffb0;
+            cursor: not-allowed;
+        }
+
+        /* ============ CHAT SCREEN ============ */
+        .chat-screen {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 130px);
+        }
+
+        .chat-header-top {
+            background: linear-gradient(180deg, #141417 0%, #0f0f11 100%);
+            border-bottom: 1px solid #2a2a2d;
+            padding: 12px 16px;
+            margin: -16px -16px 12px -16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #a855f7;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            color: #ec4899;
+        }
+
+        .chat-header-info {
+            flex: 1;
+        }
+
+        .chat-character-name {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .chat-status {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 0 0 12px 0;
+        }
+
+        .message {
+            display: flex;
+            gap: 8px;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            border-radius: 12px 2px 12px 12px;
+        }
+
+        .message.bot .message-content {
+            background-color: #1a1a1d;
+            border: 1px solid #2a2a2d;
+            color: #ffffff;
+            border-radius: 2px 12px 12px 12px;
+        }
+
+        .chat-input-section {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .chat-input {
+            flex: 1;
+            background-color: #141417;
+            border: 1px solid #2a2a2d;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #a855f7;
+            background-color: #1a1a1d;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        /* ============ PROFILE SCREEN ============ */
+        .profile-section {
+            background: linear-gradient(135deg, #1a1a1d, #141417);
+            border: 1px solid #2a2a2d;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #2a2a2d;
+        }
+
+        .profile-item:last-child {
+            border-bottom: none;
+        }
+
+        .profile-label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .profile-value {
+            color: #a855f7;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* ============ TABBAR ============ */
+        .tabbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #141417 0%, #0f0f11 100%);
+            border-top: 1px solid #2a2a2d;
+            display: flex;
+            justify-content: space-around;
+            height: 70px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            margin: 0;
-            min-height: 90vh;
-        }
-        .card {
-            background: #1a1a1e;
-            border: 2px solid #8a2be2;
-            box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
-            border-radius: 12px;
-            padding: 20px;
-            width: 90%;
-            max-width: 350px;
-            text-align: center;
-        }
-        h2 { color: #ba55d3; margin-top: 0; }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #26262b;
-            border: 1px solid #444;
-            border-radius: 6px;
-            color: #fff;
-            box-sizing: border-box;
-        }
-        input:focus, textarea:focus {
-            border-color: #ba55d3;
-            outline: none;
-        }
-        button {
-            background: linear-gradient(45deg, #8a2be2, #ba55d3);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
             cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(186, 85, 211, 0.4);
+            transition: all 0.3s ease;
+            color: #888888;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 500;
         }
-        button:active { transform: scale(0.98); }
+
+        .tab.active {
+            color: #a855f7;
+        }
+
+        .tab-icon {
+            font-size: 24px;
+        }
+
+        .tab-label {
+            font-size: 11px;
+        }
+
+        /* ============ NOTIFICATION ============ */
+        .notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            padding: 16px 32px;
+            border-radius: 12px;
+            z-index: 200;
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
+            animation: slideDown 0.4s ease-out;
+            max-width: 85%;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.hide {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            to {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+        }
+
+        /* ============ SCROLLBAR ============ */
+        .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 3px;
+        }
+
+        .main-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.5);
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.5);
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 480px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .characters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- ============ HEADER ============ -->
+    <div class="header">
+        <div class="profile-block">
+            <div class="avatar" id="profileAvatar">У</div>
+            <div class="username" id="profileUsername">User</div>
+        </div>
+        <div class="balance-badge">
+            🪙 <span id="balanceAmount">120</span>
+        </div>
+    </div>
 
-<div class="card">
-    <h2>Создай Персонажа 😈</h2>
-    <input type="text" id="name" placeholder="Имя персонажа...">
-    <textarea id="prompt" rows="4" placeholder="Его характер и повадки..."></textarea>
-    <button id="send_btn">Готово (Создать)</button>
-</div>
+    <!-- ============ MAIN CONTENT ============ -->
+    <div class="main-content">
+        <!-- HOME SCREEN -->
+        <div id="homeScreen" class="screen active">
+            <div class="cards-grid">
+                <div class="card bonus-card" id="bonusCard">
+                    <div class="card-icon">🎁</div>
+                    <div class="card-title">Подарок дня</div>
+                    <div class="card-description">Бесплатные токены</div>
+                </div>
 
-<script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
+                <div class="card">
+                    <div class="card-icon">👑</div>
+                    <div class="card-title">Топ игроков</div>
+                    <div class="card-description">Лидеры месяца</div>
+                </div>
 
-    let btn = document.getElementById("send_btn");
+                <div class="card">
+                    <div class="card-icon">🖼️</div>
+                    <div class="card-title">Галерея</div>
+                    <div class="card-description">Избранные персонажи</div>
+                </div>
 
-    btn.addEventListener("click", function() {
-        let name = document.getElementById("name").value;
-        let prompt = document.getElementById("prompt").value;
+                <div class="card">
+                    <div class="card-icon">🎲</div>
+                    <div class="card-title">Розыгрыш</div>
+                    <div class="card-description">Выиграй призы</div>
+                </div>
+            </div>
 
-        if(!name || !prompt) {
-            alert("Заполни все поля, бро!");
-            return;
-        }
+            <div class="section-title">Чаты</div>
+            <div class="chat-list" id="chatListHome"></div>
+        </div>
 
-        let data = {
-            char_name: name,
-            char_prompt: prompt
+        <!-- CATALOG SCREEN -->
+        <div id="catalogScreen" class="screen">
+            <div class="characters-grid" id="charactersGrid"></div>
+        </div>
+
+        <!-- CREATE SCREEN -->
+        <div id="createScreen" class="screen">
+            <form id="createForm">
+                <div class="form-group">
+                    <label class="form-label">Имя персонажа</label>
+                    <input type="text" class="form-input" id="characterName" placeholder="Например: Секси мама" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Характер и повадки</label>
+                    <textarea class="form-textarea" id="characterPersonality" placeholder="Опишите характер, привычки, способ общения..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-button">✓ Создать</button>
+            </form>
+        </div>
+
+        <!-- QUESTS SCREEN -->
+        <div id="questsScreen" class="screen">
+            <div id="questsList"></div>
+        </div>
+
+        <!-- PROFILE SCREEN -->
+        <div id="profileScreen" class="screen">
+            <div class="profile-section">
+                <div class="profile-item">
+                    <span class="profile-label">Имя</span>
+                    <span class="profile-value" id="profileName">User</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Баланс</span>
+                    <span class="profile-value" id="profileBalance">120</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">ID пользователя</span>
+                    <span class="profile-value" id="profileUserId">—</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">Созданных персонажей</span>
+                    <span class="profile-value" id="profileCharactersCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT SCREEN (Динамический) -->
+        <div id="chatScreen" class="screen chat-screen" style="display: none;">
+            <div class="chat-header-top">
+                <button class="back-button" id="backButton">←</button>
+                <div class="chat-header-info">
+                    <div class="chat-character-name" id="chatCharacterName">Название</div>
+                    <div class="chat-status">В сети</div>
+                </div>
+            </div>
+            <div class="messages-container" id="messagesContainer"></div>
+            <div class="chat-input-section">
+                <input type="text" class="chat-input" id="messageInput" placeholder="Написать сообщение...">
+                <button class="send-button" id="sendButton">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TABBAR ============ -->
+    <div class="tabbar">
+        <div class="tab active" data-tab="home">
+            <div class="tab-icon">🏠</div>
+            <div class="tab-label">Главная</div>
+        </div>
+        <div class="tab" data-tab="catalog">
+            <div class="tab-icon">📁</div>
+            <div class="tab-label">Каталог</div>
+        </div>
+        <div class="tab" data-tab="create">
+            <div class="tab-icon">➕</div>
+            <div class="tab-label">Создать</div>
+        </div>
+        <div class="tab" data-tab="quests">
+            <div class="tab-icon">📖</div>
+            <div class="tab-label">Задания</div>
+        </div>
+        <div class="tab" data-tab="profile">
+            <div class="tab-icon">⚙️</div>
+            <div class="tab-label">Профиль</div>
+        </div>
+    </div>
+
+    <!-- ============ JAVASCRIPT ============ -->
+    <script>
+        // ============ STATE MANAGEMENT ============
+        const app = {
+            balance: 120,
+            currentScreen: 'home',
+            currentChat: null,
+            createdCharacters: 0,
+            chats: [
+                {
+                    id: 1,
+                    name: 'Секси мама',
+                    emoji: '👩',
+                    preview: 'Привет, малыш! Как дела?',
+                    time: '12:45',
+                    messages: [
+                        { type: 'bot', text: 'Привет, малыш! Как дела?' }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: 'Твоя пошлая мачеха',
+                    emoji: '👸',
+                    preview: 'Хорошего дня!',
+                    time: '10:30',
+                    messages: [
+                        { type: 'bot', text: 'Привет, дорогой! Как прошёл день?' }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: 'Игривая королева',
+                    emoji: '👑',
+                    preview: 'До скоро, красавчик!',
+                    time: 'вчера',
+                    messages: [
+                        { type: 'bot', text: 'Когда ты снова мне напишешь?' }
+                    ]
+                }
+            ],
+            characters: [
+                { id: 1, name: 'Секси мама', emoji: '👩', tags: ['энергичная', 'игривая'] },
+                { id: 2, name: 'Твоя пошлая мачеха', emoji: '👸', tags: ['пошлая', 'возбуждающая'] },
+                { id: 3, name: 'Игривая королева', emoji: '👑', tags: ['игривая', 'уверенная'] },
+                { id: 4, name: 'Таинственная ночь', emoji: '🌙', tags: ['таинственная', 'соблазнительная'] }
+            ],
+            quests: [
+                { id: 1, title: 'Посмотреть рекламу', reward: 10, completed: false },
+                { id: 2, title: 'Пригласить друга', reward: 50, completed: false },
+                { id: 3, title: 'Написать 5 сообщений', reward: 25, completed: false },
+                { id: 4, title: 'Открыть новый чат', reward: 15, completed: false }
+            ]
         };
 
-        tg.sendData(JSON.stringify(data));
-        tg.close();
-    });
-</script>
+        // ============ TELEGRAM INIT ============
+        function initializeTelegram() {
+            const webApp = window.Telegram?.WebApp;
+            if (webApp) {
+                webApp.ready();
+                const initData = webApp.initDataUnsafe;
+                
+                if (initData && initData.user) {
+                    const firstName = initData.user.first_name || 'User';
+                    const userId = initData.user.id;
+                    
+                    const firstLetter = firstName.charAt(0).toUpperCase();
+                    document.getElementById('profileAvatar').textContent = firstLetter;
+                    document.getElementById('profileUsername').textContent = firstName;
+                    document.getElementById('profileName').textContent = firstName;
+                    document.getElementById('profileUserId').textContent = userId;
+                }
+            }
+        }
 
+        // ============ RENDER FUNCTIONS ============
+        function updateBalance() {
+            document.getElementById('balanceAmount').textContent = app.balance;
+            document.getElementById('profileBalance').textContent = app.balance;
+        }
+
+        function renderChatList(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            app.chats.forEach(chat => {
+                const chatElement = document.createElement('div');
+                chatElement.className = 'chat-item';
+                chatElement.onclick = () => openChat(chat.id);
+                
+                chatElement.innerHTML = `
+                    <div class="chat-avatar">${chat.emoji}</div>
+                    <div class="chat-content">
+                        <div class="chat-header">
+                            <span class="chat-name">${chat.name}</span>
+                            <span class="chat-time">${chat.time}</span>
+                        </div>
+                        <div class="chat-preview">${chat.preview}</div>
+                    </div>
+                `;
+                
+                container.appendChild(chatElement);
+            });
+        }
+
+        function renderCharactersGrid() {
+            const grid = document.getElementById('charactersGrid');
+            grid.innerHTML = '';
+            
+            app.characters.forEach(char => {
+                const charCard = document.createElement('div');
+                charCard.className = 'character-card';
+                
+                const tagsHTML = char.tags.map(tag => 
+                    `<span class="character-tag">${tag}</span>`
+                ).join('');
+                
+                charCard.innerHTML = `
+                    <div class="character-emoji">${char.emoji}</div>
+                    <div class="character-name">${char.name}</div>
+                    <div class="character-tags">${tagsHTML}</div>
+                    <button class="chat-button" onclick="openChat(${char.id})">Чат</button>
+                `;
+                
+                grid.appendChild(charCard);
+            });
+        }
+
+        function renderQuestsList() {
+            const list = document.getElementById('questsList');
+            list.innerHTML = '';
+            
+            app.quests.forEach(quest => {
+                const questElement = document.createElement('div');
+                questElement.className = 'quest-item';
+                
+                const isCompleted = quest.completed;
+                const buttonClass = isCompleted ? 'completed' : '';
+                const buttonText = isCompleted ? '✓ Выполнено' : 'Выполнить';
+                
+                questElement.innerHTML = `
+                    <div class="quest-content">
+                        <div class="quest-title">${quest.title}</div>
+                        <div class="quest-reward">+${quest.reward} 🪙</div>
+                    </div>
+                    <button class="quest-button ${buttonClass}" onclick="completeQuest(${quest.id})" ${isCompleted ? 'disabled' : ''}>
+                        ${buttonText}
+                    </button>
+                `;
+                
+                list.appendChild(questElement);
+            });
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            
+            if (app.currentChat) {
+                const chat = app.chats.find(c => c.id === app.currentChat);
+                if (chat && chat.messages) {
+                    chat.messages.forEach(msg => {
+                        const msgElement = document.createElement('div');
+                        msgElement.className = `message ${msg.type}`;
+                        msgElement.innerHTML = `<div class="message-content">${msg.text}</div>`;
+                        container.appendChild(msgElement);
+                    });
+                    
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+        }
+
+        // ============ NAVIGATION ============
+        function switchScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            document.getElementById(screenName + 'Screen').classList.add('active');
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${screenName}"]`).classList.add('active');
+            
+            app.currentScreen = screenName;
+            
+            if (screenName === 'home') {
+                renderChatList('chatListHome');
+            } else if (screenName === 'catalog') {
+                renderCharactersGrid();
+            } else if (screenName === 'quests') {
+                renderQuestsList();
+            }
+            
+            document.querySelector('.main-content').scrollTop = 0;
+        }
+
+        function openChat(chatId) {
+            app.currentChat = chatId;
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('catalogScreen').style.display = 'none';
+            document.getElementById('createScreen').style.display = 'none';
+            document.getElementById('questsScreen').style.display = 'none';
+            document.getElementById('profileScreen').style.display = 'none';
+            document.getElementById('chatScreen').style.display = 'flex';
+            
+            const chat = app.chats.find(c => c.id === chatId);
+            if (chat) {
+                document.getElementById('chatCharacterName').textContent = chat.name;
+            }
+            
+            renderMessages();
+        }
+
+        function closeChat() {
+            app.currentChat = null;
+            switchScreen('home');
+        }
+
+        // ============ INTERACTIONS ============
+        function claimDailyBonus() {
+            app.balance += 50;
+            updateBalance();
+            showNotification('🎉 Вы получили +50 токенов!');
+            
+            document.getElementById('bonusCard').style.pointerEvents = 'none';
+            document.getElementById('bonusCard').style.opacity = '0.5';
+        }
+
+        function completeQuest(questId) {
+            const quest = app.quests.find(q => q.id === questId);
+            if (quest && !quest.completed) {
+                quest.completed = true;
+                app.balance += quest.reward;
+                updateBalance();
+                renderQuestsList();
+                showNotification(`✓ Квест выполнен! +${quest.reward} токенов`);
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            
+            if (messageText && app.currentChat) {
+                const chat = app.chats.find(c => c.id === app.currentChat);
+                if (chat) {
+                    chat.messages.push({ type: 'user', text: messageText });
+                    renderMessages();
+                    input.value = '';
+                    
+                    setTimeout(() => {
+                        const botResponses = [
+                            'Очень интересно! 😏',
+                            'Мне нравится твой стиль 💋',
+                            'Ты меня вводишь в искушение 🔥',
+                            'Расскажи мне больше...',
+                            'Я слушаю тебя внимательно 👀',
+                            'Хм, это звучит очень заманчиво 😘'
+                        ];
+                        const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
+                        chat.messages.push({ type: 'bot', text: randomResponse });
+                        renderMessages();
+                    }, 500);
+                }
+            }
+        }
+
+        function showNotification(message) {
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('hide');
+                setTimeout(() => notification.remove(), 400);
+            }, 2500);
+        }
+
+        // ============ FORM HANDLING ============
+        document.getElementById('createForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const characterName = document.getElementById('characterName').value;
+            const characterPersonality = document.getElementById('characterPersonality').value;
+            
+            const data = {
+                type: 'create_character',
+                name: characterName,
+                personality: characterPersonality,
+                timestamp: new Date().toISOString()
+            };
+            
+            const webApp = window.Telegram?.WebApp;
+            if (webApp) {
+                webApp.sendData(JSON.stringify(data));
+            }
+            
+            app.createdCharacters++;
+            document.getElementById('profileCharactersCount').textContent = app.createdCharacters;
+            
+            showNotification('✓ Персонаж создан!');
+            document.getElementById('createForm').reset();
+        });
+
+        // ============ EVENT LISTENERS ============
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const screenName = tab.dataset.tab;
+                switchScreen(screenName);
+            });
+        });
+
+        document.getElementById('bonusCard').addEventListener('click', claimDailyBonus);
+        
+        document.getElementById('backButton').addEventListener('click', closeChat);
+        
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+        
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // ============ INITIALIZATION ============
+        initializeTelegram();
+        renderChatList('chatListHome');
+        renderCharactersGrid();
+        renderQuestsList();
+    </script>
 </body>
 </html>
