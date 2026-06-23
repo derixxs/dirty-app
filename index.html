@@ -1086,6 +1086,107 @@
             }
         }
 
+        /* ============ LANGUAGE MODAL ============ */
+        .language-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .language-modal.hidden {
+            display: none;
+        }
+
+        .language-modal-content {
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 350px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 60px rgba(168, 85, 247, 0.3);
+        }
+
+        .language-modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .language-modal-description {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 30px;
+        }
+
+        .language-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .language-option {
+            flex: 1;
+            padding: 18px;
+            border: 2px solid rgba(168, 85, 247, 0.2);
+            border-radius: 14px;
+            background: rgba(20, 20, 30, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .language-option:hover {
+            border-color: rgba(168, 85, 247, 0.4);
+            background: rgba(30, 20, 50, 0.6);
+        }
+
+        .language-option.selected {
+            border-color: #a855f7;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.3));
+            box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+        }
+
+        .language-confirm-button {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .language-confirm-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(168, 85, 247, 0.4);
+        }
+
+        .language-confirm-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* ============ RESPONSIVE ============ */
         @media (max-width: 480px) {
             .cards-grid {
@@ -1111,10 +1212,32 @@
             .section-title {
                 font-size: 15px;
             }
+
+            .language-modal-content {
+                max-width: 90%;
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- ============ LANGUAGE MODAL ============ -->
+    <div class="language-modal" id="languageModal">
+        <div class="language-modal-content">
+            <div class="language-modal-title" id="langModalTitle">Choose Language</div>
+            <div class="language-modal-description" id="langModalDesc">Выберите язык</div>
+            <div class="language-options">
+                <div class="language-option" data-lang="en">
+                    <span>🇬🇧 English</span>
+                </div>
+                <div class="language-option" data-lang="ru">
+                    <span>🇷🇺 Русский</span>
+                </div>
+            </div>
+            <button class="language-confirm-button" id="langConfirmBtn" disabled>Confirm / Подтвердить</button>
+        </div>
+    </div>
+
     <!-- ============ HEADER ============ -->
     <div class="header">
         <div class="profile-block">
@@ -1133,31 +1256,34 @@
             <div class="cards-grid">
                 <div class="card bonus-card" id="bonusCard">
                     <div class="card-icon">🎁</div>
-                    <div class="card-title">Подарок дня</div>
-                    <div class="card-description">Бесплатные токены</div>
+                    <div class="card-title" data-i18n="dailyGift">Подарок дня</div>
+                    <div class="card-description" data-i18n="freeTokens">Бесплатные токены</div>
                 </div>
 
                 <div class="card">
                     <div class="card-icon">👑</div>
-                    <div class="card-title">Топ игроков</div>
-                    <div class="card-description">Лидеры месяца</div>
+                    <div class="card-title" data-i18n="topPlayers">Топ игроков</div>
+                    <div class="card-description" data-i18n="monthLeaders">Лидеры месяца</div>
                 </div>
 
                 <div class="card">
                     <div class="card-icon">🖼️</div>
-                    <div class="card-title">Галерея</div>
-                    <div class="card-description">Избранные персонажи</div>
+                    <div class="card-title" data-i18n="gallery">Галерея</div>
+                    <div class="card-description" data-i18n="favoriteCharacters">Избранные персонажи</div>
                 </div>
 
                 <div class="card">
                     <div class="card-icon">🎲</div>
-                    <div class="card-title">Розыгрыш</div>
-                    <div class="card-description">Выиграй призы</div>
+                    <div class="card-title" data-i18n="raffle">Розыгрыш</div>
+                    <div class="card-description" data-i18n="winPrizes">Выиграй призы</div>
                 </div>
             </div>
+        </div>
 
-            <div class="section-title">Чаты</div>
-            <div class="chat-list" id="chatListHome"></div>
+        <!-- CHATS SCREEN -->
+        <div id="chatsScreen" class="screen">
+            <div class="section-title" data-i18n="chatsTitle">Чаты</div>
+            <div class="chat-list" id="chatListChats"></div>
         </div>
 
         <!-- CATALOG SCREEN -->
@@ -1169,16 +1295,16 @@
         <div id="createScreen" class="screen">
             <form id="createForm">
                 <div class="form-group">
-                    <label class="form-label">Имя персонажа</label>
+                    <label class="form-label" data-i18n="characterName">Имя персонажа</label>
                     <input type="text" class="form-input" id="characterName" placeholder="Например: Секси мама" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Характер и повадки</label>
+                    <label class="form-label" data-i18n="characterPersonality">Характер и повадки</label>
                     <textarea class="form-textarea" id="characterPersonality" placeholder="Опишите характер, привычки, способ общения..." required></textarea>
                 </div>
 
-                <button type="submit" class="submit-button">✓ Создать</button>
+                <button type="submit" class="submit-button" data-i18n="create">✓ Создать</button>
             </form>
         </div>
 
@@ -1191,49 +1317,54 @@
         <div id="profileScreen" class="screen">
             <div class="profile-section">
                 <div class="profile-item">
-                    <span class="profile-label">Имя</span>
+                    <span class="profile-label" data-i18n="name">Имя</span>
                     <span class="profile-value" id="profileName">User</span>
                 </div>
                 <div class="profile-item">
-                    <span class="profile-label">Баланс</span>
+                    <span class="profile-label" data-i18n="balance">Баланс</span>
                     <span class="profile-value" id="profileBalance">120</span>
                 </div>
                 <div class="profile-item">
-                    <span class="profile-label">ID пользователя</span>
+                    <span class="profile-label" data-i18n="userId">ID пользователя</span>
                     <span class="profile-value" id="profileUserId">—</span>
                 </div>
                 <div class="profile-item">
-                    <span class="profile-label">Созданных персонажей</span>
+                    <span class="profile-label" data-i18n="createdChars">Созданных персонажей</span>
                     <span class="profile-value" id="profileCharactersCount">0</span>
                 </div>
             </div>
 
             <div class="settings-section">
-                <div class="settings-section-title">⚙️ Настройки</div>
+                <div class="settings-section-title" data-i18n="settings">⚙️ Настройки</div>
 
                 <div class="settings-item">
-                    <label class="settings-label">Ваше имя</label>
+                    <label class="settings-label" data-i18n="yourName">Ваше имя</label>
                     <input type="text" class="username-input" id="settingsUsername" placeholder="Введите ваше имя">
                 </div>
 
                 <div class="settings-item">
-                    <label class="settings-label">Ваша аватарка</label>
+                    <label class="settings-label" data-i18n="yourAvatar">Ваша аватарка</label>
                     <div class="avatar-upload-container">
                         <div class="avatar-preview" id="avatarPreview">👤</div>
-                        <label class="avatar-upload-label" for="avatarFileInput">
+                        <label class="avatar-upload-label" for="avatarFileInput" data-i18n="choosePhoto">
                             📸 Выбрать фото
                         </label>
                         <input type="file" id="avatarFileInput" accept="image/*">
-                        <button type="button" class="avatar-remove-button" id="avatarRemoveButton" style="display: none;">✕ Удалить</button>
+                        <button type="button" class="avatar-remove-button" id="avatarRemoveButton" data-i18n="remove" style="display: none;">✕ Удалить</button>
                     </div>
                 </div>
 
                 <div class="settings-item">
-                    <label class="settings-label">Цветовая тема</label>
+                    <label class="settings-label" data-i18n="colorTheme">Цветовая тема</label>
                     <div class="theme-picker" id="themePicker"></div>
                 </div>
 
-                <button class="save-settings-button" id="saveSettingsButton">💾 Сохранить настройки</button>
+                <div class="settings-item">
+                    <label class="settings-label" data-i18n="language">Язык</label>
+                    <div class="theme-picker" id="languagePicker"></div>
+                </div>
+
+                <button class="save-settings-button" id="saveSettingsButton" data-i18n="saveSettings">💾 Сохранить настройки</button>
             </div>
         </div>
 
@@ -1243,13 +1374,13 @@
                 <button class="back-button" id="backButton">←</button>
                 <div class="chat-header-info">
                     <div class="chat-character-name" id="chatCharacterName">Название</div>
-                    <div class="chat-status">В сети</div>
+                    <div class="chat-status" data-i18n="online">В сети</div>
                 </div>
             </div>
             <div class="messages-container" id="messagesContainer"></div>
             <div class="chat-input-section">
                 <input type="text" class="chat-input" id="messageInput" placeholder="Написать сообщение...">
-                <button class="send-button" id="sendButton">Отправить</button>
+                <button class="send-button" id="sendButton" data-i18n="send">Отправить</button>
             </div>
         </div>
     </div>
@@ -1258,28 +1389,138 @@
     <div class="tabbar">
         <div class="tab active" data-tab="home">
             <div class="tab-icon">🏠</div>
-            <div class="tab-label">Главная</div>
+            <div class="tab-label" data-i18n="home">Главная</div>
+        </div>
+        <div class="tab" data-tab="chats">
+            <div class="tab-icon">💬</div>
+            <div class="tab-label" data-i18n="chats">Чаты</div>
         </div>
         <div class="tab" data-tab="catalog">
             <div class="tab-icon">📁</div>
-            <div class="tab-label">Каталог</div>
+            <div class="tab-label" data-i18n="catalog">Каталог</div>
         </div>
         <div class="tab" data-tab="create">
             <div class="tab-icon">➕</div>
-            <div class="tab-label">Создать</div>
+            <div class="tab-label" data-i18n="create">Создать</div>
         </div>
         <div class="tab" data-tab="quests">
             <div class="tab-icon">📖</div>
-            <div class="tab-label">Задания</div>
+            <div class="tab-label" data-i18n="quests">Задания</div>
         </div>
         <div class="tab" data-tab="profile">
             <div class="tab-icon">⚙️</div>
-            <div class="tab-label">Профиль</div>
+            <div class="tab-label" data-i18n="profile">Профиль</div>
         </div>
     </div>
 
     <!-- ============ JAVASCRIPT ============ -->
     <script>
+        // ============ TRANSLATIONS ============
+        const translations = {
+            ru: {
+                // Header & Navigation
+                home: 'Главная',
+                chats: 'Чаты',
+                catalog: 'Каталог',
+                create: 'Создать',
+                quests: 'Задания',
+                profile: 'Профиль',
+                
+                // Home Screen
+                dailyGift: 'Подарок дня',
+                freeTokens: 'Бесплатные токены',
+                topPlayers: 'Топ игроков',
+                monthLeaders: 'Лидеры месяца',
+                gallery: 'Галерея',
+                favoriteCharacters: 'Избранные персонажи',
+                raffle: 'Розыгрыш',
+                winPrizes: 'Выиграй призы',
+                chatsTitle: 'Чаты',
+                
+                // Forms
+                characterName: 'Имя персонажа',
+                characterPersonality: 'Характер и повадки',
+                
+                // Profile
+                name: 'Имя',
+                balance: 'Баланс',
+                userId: 'ID пользователя',
+                createdChars: 'Созданных персонажей',
+                settings: '⚙️ Настройки',
+                yourName: 'Ваше имя',
+                yourAvatar: 'Ваша аватарка',
+                choosePhoto: '📸 Выбрать фото',
+                remove: '✕ Удалить',
+                colorTheme: 'Цветовая тема',
+                language: 'Язык',
+                saveSettings: '💾 Сохранить настройки',
+                
+                // Chat
+                online: 'В сети',
+                send: 'Отправить',
+                
+                // Language Modal
+                langModalTitle: 'Выберите язык',
+                langModalDesc: 'Выберите язык интерфейса',
+                confirmLanguage: 'Подтвердить',
+                
+                // Language Options
+                english: '🇬🇧 English',
+                russian: '🇷🇺 Русский',
+            },
+            en: {
+                // Header & Navigation
+                home: 'Home',
+                chats: 'Chats',
+                catalog: 'Catalog',
+                create: 'Create',
+                quests: 'Quests',
+                profile: 'Profile',
+                
+                // Home Screen
+                dailyGift: 'Daily Gift',
+                freeTokens: 'Free Tokens',
+                topPlayers: 'Top Players',
+                monthLeaders: 'Month Leaders',
+                gallery: 'Gallery',
+                favoriteCharacters: 'Favorite Characters',
+                raffle: 'Raffle',
+                winPrizes: 'Win Prizes',
+                chatsTitle: 'Chats',
+                
+                // Forms
+                characterName: 'Character Name',
+                characterPersonality: 'Character Traits',
+                
+                // Profile
+                name: 'Name',
+                balance: 'Balance',
+                userId: 'User ID',
+                createdChars: 'Created Characters',
+                settings: '⚙️ Settings',
+                yourName: 'Your Name',
+                yourAvatar: 'Your Avatar',
+                choosePhoto: '📸 Choose Photo',
+                remove: '✕ Remove',
+                colorTheme: 'Color Theme',
+                language: 'Language',
+                saveSettings: '💾 Save Settings',
+                
+                // Chat
+                online: 'Online',
+                send: 'Send',
+                
+                // Language Modal
+                langModalTitle: 'Choose Language',
+                langModalDesc: 'Select your interface language',
+                confirmLanguage: 'Confirm',
+                
+                // Language Options
+                english: '🇬🇧 English',
+                russian: '🇷🇺 Русский',
+            }
+        };
+
         // ============ SETTINGS DATA ============
         const themes = [
             { name: 'Purple', id: 'purple', class: 'theme-purple', primary: '#a855f7', secondary: '#ec4899' },
@@ -1294,10 +1535,12 @@
             currentScreen: 'home',
             currentChat: null,
             createdCharacters: 0,
+            currentLanguage: 'ru',
             settings: {
                 username: 'User',
                 avatarData: null,
-                theme: 'purple'
+                theme: 'purple',
+                language: 'ru'
             },
             chats: [
                 {
@@ -1345,16 +1588,92 @@
             ]
         };
 
+        // ============ LANGUAGE FUNCTIONS ============
+        function t(key) {
+            const lang = app.currentLanguage;
+            return translations[lang]?.[key] || translations['ru']?.[key] || key;
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+            
+            // Update placeholders
+            const input = document.getElementById('messageInput');
+            if (input) {
+                input.placeholder = app.currentLanguage === 'en' ? 'Write a message...' : 'Написать сообщение...';
+            }
+            
+            const charName = document.getElementById('characterName');
+            if (charName) {
+                charName.placeholder = app.currentLanguage === 'en' ? 'Example: Sexy Mom' : 'Например: Секси мама';
+            }
+            
+            const charPersonality = document.getElementById('characterPersonality');
+            if (charPersonality) {
+                charPersonality.placeholder = app.currentLanguage === 'en' ? 'Describe character traits...' : 'Опишите характер, привычки, способ общения...';
+            }
+            
+            const settingsUsername = document.getElementById('settingsUsername');
+            if (settingsUsername) {
+                settingsUsername.placeholder = app.currentLanguage === 'en' ? 'Enter your name' : 'Введите ваше имя';
+            }
+        }
+
+        function showLanguageModal() {
+            const modal = document.getElementById('languageModal');
+            const isFirstVisit = !localStorage.getItem('dirtymindLanguage');
+            
+            if (isFirstVisit) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function setLanguage(lang) {
+            app.currentLanguage = lang;
+            app.settings.language = lang;
+            localStorage.setItem('dirtymindLanguage', lang);
+            
+            document.querySelectorAll('.language-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`[data-lang="${lang}"]`).classList.add('selected');
+            
+            document.getElementById('langConfirmBtn').disabled = false;
+        }
+
+        function confirmLanguageSelection() {
+            localStorage.setItem('dirtymindLanguage', app.currentLanguage);
+            localStorage.setItem('dirtymindSettings', JSON.stringify(app.settings));
+            
+            const modal = document.getElementById('languageModal');
+            modal.classList.add('hidden');
+            
+            applyTranslations();
+            showNotification(app.currentLanguage === 'en' ? '✓ Language changed!' : '✓ Язык изменён!');
+        }
+
         // ============ STORAGE MANAGEMENT ============
         function loadSettings() {
             const saved = localStorage.getItem('dirtymindSettings');
             if (saved) {
                 app.settings = { ...app.settings, ...JSON.parse(saved) };
             }
+            
+            const savedLang = localStorage.getItem('dirtymindLanguage');
+            if (savedLang) {
+                app.currentLanguage = savedLang;
+                app.settings.language = savedLang;
+            }
         }
 
         function saveSettings() {
             localStorage.setItem('dirtymindSettings', JSON.stringify(app.settings));
+            localStorage.setItem('dirtymindLanguage', app.currentLanguage);
         }
 
         function applyTheme(themeId) {
@@ -1365,7 +1684,6 @@
             root.style.setProperty('--accent-primary', theme.primary);
             root.style.setProperty('--accent-secondary', theme.secondary);
 
-            // Обновляем все элементы с градиентами
             document.querySelectorAll('.balance-badge, .avatar, .submit-button, .chat-button, .quest-button, .send-button, .save-settings-button').forEach(el => {
                 el.style.background = `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`;
             });
@@ -1419,7 +1737,35 @@
                     applyTheme(theme.id);
                     renderThemePicker();
                     saveSettings();
-                    showNotification(`✓ Тема ${theme.name} применена!`);
+                    showNotification(`✓ ${app.currentLanguage === 'en' ? 'Theme changed!' : 'Тема изменена!'}`);
+                };
+                picker.appendChild(option);
+            });
+        }
+
+        function renderLanguagePicker() {
+            const picker = document.getElementById('languagePicker');
+            picker.innerHTML = '';
+            
+            const languages = [
+                { id: 'ru', name: '🇷🇺 Русский' },
+                { id: 'en', name: '🇬🇧 English' }
+            ];
+            
+            languages.forEach(lang => {
+                const option = document.createElement('div');
+                option.className = 'theme-option';
+                if (lang.id === app.currentLanguage) {
+                    option.classList.add('selected');
+                }
+                option.textContent = lang.name;
+                option.onclick = () => {
+                    app.currentLanguage = lang.id;
+                    app.settings.language = lang.id;
+                    renderLanguagePicker();
+                    saveSettings();
+                    applyTranslations();
+                    showNotification(app.currentLanguage === 'en' ? '✓ Language changed!' : '✓ Язык изменён!');
                 };
                 picker.appendChild(option);
             });
@@ -1512,7 +1858,7 @@
                     <div class="character-emoji">${char.emoji}</div>
                     <div class="character-name">${char.name}</div>
                     <div class="character-tags">${tagsHTML}</div>
-                    <button class="chat-button" onclick="openChat(${char.id})">Чат</button>
+                    <button class="chat-button" onclick="openChat(${char.id})">${t('chats')}</button>
                 `;
                 
                 grid.appendChild(charCard);
@@ -1529,7 +1875,7 @@
                 
                 const isCompleted = quest.completed;
                 const buttonClass = isCompleted ? 'completed' : '';
-                const buttonText = isCompleted ? '✓ Выполнено' : 'Выполнить';
+                const buttonText = isCompleted ? '✓ ' + (app.currentLanguage === 'en' ? 'Completed' : 'Выполнено') : app.currentLanguage === 'en' ? 'Complete' : 'Выполнить';
                 
                 questElement.innerHTML = `
                     <div class="quest-content">
@@ -1570,17 +1916,25 @@
                 screen.classList.remove('active');
             });
             
-            document.getElementById(screenName + 'Screen').classList.add('active');
+            const screenElement = document.getElementById(screenName + 'Screen');
+            if (screenElement) {
+                screenElement.classList.add('active');
+            }
             
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            document.querySelector(`[data-tab="${screenName}"]`).classList.add('active');
+            const tabElement = document.querySelector(`[data-tab="${screenName}"]`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
             
             app.currentScreen = screenName;
             
             if (screenName === 'home') {
-                renderChatList('chatListHome');
+                // Home screen only shows cards now
+            } else if (screenName === 'chats') {
+                renderChatList('chatListChats');
             } else if (screenName === 'catalog') {
                 renderCharactersGrid();
             } else if (screenName === 'quests') {
@@ -1588,6 +1942,7 @@
             } else if (screenName === 'profile') {
                 document.getElementById('settingsUsername').value = app.settings.username;
                 renderThemePicker();
+                renderLanguagePicker();
                 updateProfileUI();
             }
             
@@ -1597,6 +1952,7 @@
         function openChat(chatId) {
             app.currentChat = chatId;
             document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('chatsScreen').style.display = 'none';
             document.getElementById('catalogScreen').style.display = 'none';
             document.getElementById('createScreen').style.display = 'none';
             document.getElementById('questsScreen').style.display = 'none';
@@ -1620,7 +1976,7 @@
         function claimDailyBonus() {
             app.balance += 50;
             updateBalance();
-            showNotification('🎉 Вы получили +50 токенов!');
+            showNotification(app.currentLanguage === 'en' ? '🎉 You got +50 tokens!' : '🎉 Вы получили +50 токенов!');
             
             document.getElementById('bonusCard').style.pointerEvents = 'none';
             document.getElementById('bonusCard').style.opacity = '0.5';
@@ -1633,7 +1989,8 @@
                 app.balance += quest.reward;
                 updateBalance();
                 renderQuestsList();
-                showNotification(`✓ Квест выполнен! +${quest.reward} токенов`);
+                const msgText = app.currentLanguage === 'en' ? `✓ Quest completed! +${quest.reward} tokens` : `✓ Квест выполнен! +${quest.reward} токенов`;
+                showNotification(msgText);
             }
         }
 
@@ -1702,7 +2059,7 @@
             app.createdCharacters++;
             document.getElementById('profileCharactersCount').textContent = app.createdCharacters;
             
-            showNotification('✓ Персонаж создан!');
+            showNotification(app.currentLanguage === 'en' ? '✓ Character created!' : '✓ Персонаж создан!');
             document.getElementById('createForm').reset();
         });
 
@@ -1712,11 +2069,20 @@
                 app.settings.username = newUsername;
                 updateProfileUI();
                 saveSettings();
-                showNotification('✓ Настройки сохранены!');
+                showNotification(app.currentLanguage === 'en' ? '✓ Settings saved!' : '✓ Настройки сохранены!');
             } else {
-                showNotification('⚠️ Введите имя!');
+                showNotification(app.currentLanguage === 'en' ? '⚠️ Enter a name!' : '⚠️ Введите имя!');
             }
         });
+
+        // ============ LANGUAGE SELECTION ============
+        document.querySelectorAll('.language-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                setLanguage(opt.getAttribute('data-lang'));
+            });
+        });
+
+        document.getElementById('langConfirmBtn').addEventListener('click', confirmLanguageSelection);
 
         // ============ EVENT LISTENERS ============
         document.querySelectorAll('.tab').forEach(tab => {
@@ -1744,9 +2110,10 @@
         applyTheme(app.settings.theme);
         initializeTelegram();
         updateProfileUI();
-        renderChatList('chatListHome');
+        applyTranslations();
         renderCharactersGrid();
         renderQuestsList();
+        showLanguageModal();
     </script>
 </body>
 </html>
