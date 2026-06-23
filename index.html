@@ -753,6 +753,175 @@
             background: rgba(168, 85, 247, 0.5);
         }
 
+        /* ============ SETTINGS SCREEN ============ */
+        .settings-section {
+            background: linear-gradient(135deg, #1a1a1d, #141417);
+            border: 1px solid #2a2a2d;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .settings-section-title {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: #a855f7;
+        }
+
+        .settings-item {
+            margin-bottom: 12px;
+        }
+
+        .settings-label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .username-input {
+            width: 100%;
+            background-color: #141417;
+            border: 1px solid #2a2a2d;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .username-input:focus {
+            outline: none;
+            border-color: #a855f7;
+            background-color: #1a1a1d;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        .avatar-picker {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #1a1a1d, #141417);
+            border: 2px solid #2a2a2d;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-option:hover {
+            border-color: #a855f7;
+            background: linear-gradient(135deg, #1f1a24, #1a1422);
+            transform: scale(1.05);
+        }
+
+        .avatar-option.selected {
+            border-color: #a855f7;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+        }
+
+        .theme-picker {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .theme-option {
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .theme-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .theme-option.selected {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .theme-purple {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            border-color: #a855f7;
+            color: #ffffff;
+        }
+
+        .theme-pink {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            border-color: #ec4899;
+            color: #ffffff;
+        }
+
+        .theme-cyan {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            border-color: #06b6d4;
+            color: #ffffff;
+        }
+
+        .theme-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+            color: #ffffff;
+        }
+
+        .save-settings-button {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .save-settings-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
+        }
+
+        /* ============ CSS VARIABLES FOR THEMES ============ */
+        :root {
+            --accent-primary: #a855f7;
+            --accent-secondary: #ec4899;
+        }
+
+        :root.theme-pink {
+            --accent-primary: #ec4899;
+            --accent-secondary: #f43f5e;
+        }
+
+        :root.theme-cyan {
+            --accent-primary: #06b6d4;
+            --accent-secondary: #0891b2;
+        }
+
+        :root.theme-green {
+            --accent-primary: #10b981;
+            --accent-secondary: #059669;
+        }
+
         /* ============ RESPONSIVE ============ */
         @media (max-width: 480px) {
             .cards-grid {
@@ -765,6 +934,14 @@
 
             .message-content {
                 max-width: 85%;
+            }
+
+            .avatar-picker {
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+            .theme-picker {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -862,6 +1039,27 @@
                     <span class="profile-value" id="profileCharactersCount">0</span>
                 </div>
             </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">⚙️ Настройки</div>
+
+                <div class="settings-item">
+                    <label class="settings-label">Ваше имя</label>
+                    <input type="text" class="username-input" id="settingsUsername" placeholder="Введите ваше имя">
+                </div>
+
+                <div class="settings-item">
+                    <label class="settings-label">Выберите аватар</label>
+                    <div class="avatar-picker" id="avatarPicker"></div>
+                </div>
+
+                <div class="settings-item">
+                    <label class="settings-label">Цветовая тема</label>
+                    <div class="theme-picker" id="themePicker"></div>
+                </div>
+
+                <button class="save-settings-button" id="saveSettingsButton">💾 Сохранить настройки</button>
+            </div>
         </div>
 
         <!-- CHAT SCREEN (Динамический) -->
@@ -907,12 +1105,27 @@
 
     <!-- ============ JAVASCRIPT ============ -->
     <script>
+        // ============ SETTINGS DATA ============
+        const availableAvatars = ['👨', '👩', '🧔', '👴', '👵', '🧑', '👨‍🦱', '👩‍🦱', '👨‍🦲', '👩‍🦲', '🧒', '👦', '👧', '😀', '😎', '🤖', '👽', '🎭', '✨', '🌟'];
+        
+        const themes = [
+            { name: 'Purple', id: 'purple', class: 'theme-purple' },
+            { name: 'Pink', id: 'pink', class: 'theme-pink' },
+            { name: 'Cyan', id: 'cyan', class: 'theme-cyan' },
+            { name: 'Green', id: 'green', class: 'theme-green' }
+        ];
+
         // ============ STATE MANAGEMENT ============
         const app = {
             balance: 120,
             currentScreen: 'home',
             currentChat: null,
             createdCharacters: 0,
+            settings: {
+                username: 'User',
+                avatar: '👨',
+                theme: 'purple'
+            },
             chats: [
                 {
                     id: 1,
@@ -959,6 +1172,74 @@
             ]
         };
 
+        // ============ STORAGE MANAGEMENT ============
+        function loadSettings() {
+            const saved = localStorage.getItem('dirtymindSettings');
+            if (saved) {
+                app.settings = { ...app.settings, ...JSON.parse(saved) };
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('dirtymindSettings', JSON.stringify(app.settings));
+        }
+
+        function applyTheme(themeId) {
+            const root = document.documentElement;
+            root.classList.remove('theme-pink', 'theme-cyan', 'theme-green');
+            
+            if (themeId !== 'purple') {
+                root.classList.add(`theme-${themeId}`);
+            }
+            
+            app.settings.theme = themeId;
+        }
+
+        function updateProfileUI() {
+            document.getElementById('profileAvatar').textContent = app.settings.avatar;
+            document.getElementById('profileUsername').textContent = app.settings.username;
+            document.getElementById('profileName').textContent = app.settings.username;
+        }
+
+        function renderAvatarPicker() {
+            const picker = document.getElementById('avatarPicker');
+            picker.innerHTML = '';
+            
+            availableAvatars.forEach(avatar => {
+                const option = document.createElement('div');
+                option.className = 'avatar-option';
+                if (avatar === app.settings.avatar) {
+                    option.classList.add('selected');
+                }
+                option.textContent = avatar;
+                option.onclick = () => {
+                    app.settings.avatar = avatar;
+                    renderAvatarPicker();
+                    updateProfileUI();
+                };
+                picker.appendChild(option);
+            });
+        }
+
+        function renderThemePicker() {
+            const picker = document.getElementById('themePicker');
+            picker.innerHTML = '';
+            
+            themes.forEach(theme => {
+                const option = document.createElement('div');
+                option.className = `theme-option ${theme.class}`;
+                if (theme.id === app.settings.theme) {
+                    option.classList.add('selected');
+                }
+                option.textContent = theme.name;
+                option.onclick = () => {
+                    applyTheme(theme.id);
+                    renderThemePicker();
+                };
+                picker.appendChild(option);
+            });
+        }
+
         // ============ TELEGRAM INIT ============
         function initializeTelegram() {
             const webApp = window.Telegram?.WebApp;
@@ -970,10 +1251,7 @@
                     const firstName = initData.user.first_name || 'User';
                     const userId = initData.user.id;
                     
-                    const firstLetter = firstName.charAt(0).toUpperCase();
-                    document.getElementById('profileAvatar').textContent = firstLetter;
-                    document.getElementById('profileUsername').textContent = firstName;
-                    document.getElementById('profileName').textContent = firstName;
+                    app.settings.username = firstName;
                     document.getElementById('profileUserId').textContent = userId;
                 }
             }
@@ -1098,6 +1376,10 @@
                 renderCharactersGrid();
             } else if (screenName === 'quests') {
                 renderQuestsList();
+            } else if (screenName === 'profile') {
+                document.getElementById('settingsUsername').value = app.settings.username;
+                renderAvatarPicker();
+                renderThemePicker();
             }
             
             document.querySelector('.main-content').scrollTop = 0;
@@ -1215,6 +1497,18 @@
             document.getElementById('createForm').reset();
         });
 
+        document.getElementById('saveSettingsButton').addEventListener('click', () => {
+            const newUsername = document.getElementById('settingsUsername').value.trim();
+            if (newUsername) {
+                app.settings.username = newUsername;
+                updateProfileUI();
+                saveSettings();
+                showNotification('✓ Настройки сохранены!');
+            } else {
+                showNotification('⚠️ Введите имя!');
+            }
+        });
+
         // ============ EVENT LISTENERS ============
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1237,7 +1531,10 @@
         });
 
         // ============ INITIALIZATION ============
+        loadSettings();
+        applyTheme(app.settings.theme);
         initializeTelegram();
+        updateProfileUI();
         renderChatList('chatListHome');
         renderCharactersGrid();
         renderQuestsList();
