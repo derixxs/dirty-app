@@ -800,36 +800,67 @@
             box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
         }
 
-        .avatar-picker {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+        .avatar-upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
         }
 
-        .avatar-option {
-            width: 100%;
-            aspect-ratio: 1;
-            background: linear-gradient(135deg, #1a1a1d, #141417);
-            border: 2px solid #2a2a2d;
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
             border-radius: 12px;
+            border: 2px solid #a855f7;
+            background: linear-gradient(135deg, #1a1a1d, #141417);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 60px;
+            overflow: hidden;
+            object-fit: cover;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
+        }
+
+        .avatar-preview.with-image {
+            border: none;
+        }
+
+        .avatar-upload-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .avatar-option:hover {
-            border-color: #a855f7;
-            background: linear-gradient(135deg, #1f1a24, #1a1422);
-            transform: scale(1.05);
+        .avatar-upload-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
         }
 
-        .avatar-option.selected {
-            border-color: #a855f7;
-            background: linear-gradient(135deg, #a855f7, #ec4899);
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+        #avatarFileInput {
+            display: none;
+        }
+
+        .avatar-remove-button {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-remove-button:hover {
+            background-color: rgba(239, 68, 68, 0.3);
         }
 
         .theme-picker {
@@ -1049,8 +1080,15 @@
                 </div>
 
                 <div class="settings-item">
-                    <label class="settings-label">Выберите аватар</label>
-                    <div class="avatar-picker" id="avatarPicker"></div>
+                    <label class="settings-label">Ваша аватарка</label>
+                    <div class="avatar-upload-container">
+                        <div class="avatar-preview" id="avatarPreview">👤</div>
+                        <label class="avatar-upload-label" for="avatarFileInput">
+                            📸 Выбрать фото
+                        </label>
+                        <input type="file" id="avatarFileInput" accept="image/*">
+                        <button type="button" class="avatar-remove-button" id="avatarRemoveButton" style="display: none;">✕ Удалить</button>
+                    </div>
                 </div>
 
                 <div class="settings-item">
@@ -1106,13 +1144,11 @@
     <!-- ============ JAVASCRIPT ============ -->
     <script>
         // ============ SETTINGS DATA ============
-        const availableAvatars = ['👨', '👩', '🧔', '👴', '👵', '🧑', '👨‍🦱', '👩‍🦱', '👨‍🦲', '👩‍🦲', '🧒', '👦', '👧', '😀', '😎', '🤖', '👽', '🎭', '✨', '🌟'];
-        
         const themes = [
-            { name: 'Purple', id: 'purple', class: 'theme-purple' },
-            { name: 'Pink', id: 'pink', class: 'theme-pink' },
-            { name: 'Cyan', id: 'cyan', class: 'theme-cyan' },
-            { name: 'Green', id: 'green', class: 'theme-green' }
+            { name: 'Purple', id: 'purple', class: 'theme-purple', primary: '#a855f7', secondary: '#ec4899' },
+            { name: 'Pink', id: 'pink', class: 'theme-pink', primary: '#ec4899', secondary: '#f43f5e' },
+            { name: 'Cyan', id: 'cyan', class: 'theme-cyan', primary: '#06b6d4', secondary: '#0891b2' },
+            { name: 'Green', id: 'green', class: 'theme-green', primary: '#10b981', secondary: '#059669' }
         ];
 
         // ============ STATE MANAGEMENT ============
@@ -1123,7 +1159,7 @@
             createdCharacters: 0,
             settings: {
                 username: 'User',
-                avatar: '👨',
+                avatarData: null,
                 theme: 'purple'
             },
             chats: [
@@ -1185,40 +1221,50 @@
         }
 
         function applyTheme(themeId) {
+            const theme = themes.find(t => t.id === themeId);
+            if (!theme) return;
+
             const root = document.documentElement;
-            root.classList.remove('theme-pink', 'theme-cyan', 'theme-green');
-            
-            if (themeId !== 'purple') {
-                root.classList.add(`theme-${themeId}`);
-            }
-            
+            root.style.setProperty('--accent-primary', theme.primary);
+            root.style.setProperty('--accent-secondary', theme.secondary);
+
+            // Обновляем все элементы с градиентами
+            document.querySelectorAll('.balance-badge, .avatar, .submit-button, .chat-button, .quest-button, .send-button, .save-settings-button').forEach(el => {
+                el.style.background = `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`;
+            });
+
+            document.querySelectorAll('.card:hover, .character-card:hover').forEach(el => {
+                el.style.borderColor = theme.primary;
+            });
+
+            document.querySelectorAll('.form-label, .settings-label').forEach(el => {
+                el.style.color = theme.primary;
+            });
+
+            document.querySelectorAll('.card, .character-card').forEach(el => {
+                el.style.borderColor = theme.primary;
+            });
+
             app.settings.theme = themeId;
         }
 
         function updateProfileUI() {
-            document.getElementById('profileAvatar').textContent = app.settings.avatar;
+            const preview = document.getElementById('avatarPreview');
+            if (app.settings.avatarData) {
+                preview.innerHTML = `<img src="${app.settings.avatarData}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                preview.classList.add('with-image');
+                document.getElementById('avatarRemoveButton').style.display = 'block';
+            } else {
+                preview.innerHTML = '👤';
+                preview.classList.remove('with-image');
+                document.getElementById('avatarRemoveButton').style.display = 'none';
+            }
+
+            document.getElementById('profileAvatar').innerHTML = app.settings.avatarData 
+                ? `<img src="${app.settings.avatarData}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+                : '👤';
             document.getElementById('profileUsername').textContent = app.settings.username;
             document.getElementById('profileName').textContent = app.settings.username;
-        }
-
-        function renderAvatarPicker() {
-            const picker = document.getElementById('avatarPicker');
-            picker.innerHTML = '';
-            
-            availableAvatars.forEach(avatar => {
-                const option = document.createElement('div');
-                option.className = 'avatar-option';
-                if (avatar === app.settings.avatar) {
-                    option.classList.add('selected');
-                }
-                option.textContent = avatar;
-                option.onclick = () => {
-                    app.settings.avatar = avatar;
-                    renderAvatarPicker();
-                    updateProfileUI();
-                };
-                picker.appendChild(option);
-            });
         }
 
         function renderThemePicker() {
@@ -1235,10 +1281,36 @@
                 option.onclick = () => {
                     applyTheme(theme.id);
                     renderThemePicker();
+                    saveSettings();
+                    showNotification(`✓ Тема ${theme.name} применена!`);
                 };
                 picker.appendChild(option);
             });
         }
+
+        // ============ AVATAR UPLOAD ============
+        function handleAvatarUpload(file) {
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                app.settings.avatarData = e.target.result;
+                updateProfileUI();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('avatarFileInput').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleAvatarUpload(e.target.files[0]);
+            }
+        });
+
+        document.getElementById('avatarRemoveButton').addEventListener('click', () => {
+            app.settings.avatarData = null;
+            updateProfileUI();
+            document.getElementById('avatarFileInput').value = '';
+        });
 
         // ============ TELEGRAM INIT ============
         function initializeTelegram() {
@@ -1378,8 +1450,8 @@
                 renderQuestsList();
             } else if (screenName === 'profile') {
                 document.getElementById('settingsUsername').value = app.settings.username;
-                renderAvatarPicker();
                 renderThemePicker();
+                updateProfileUI();
             }
             
             document.querySelector('.main-content').scrollTop = 0;
