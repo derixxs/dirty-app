@@ -531,7 +531,9 @@
             margin: -16px -16px 14px -16px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
+            flex-wrap: wrap;
             backdrop-filter: blur(15px);
         }
 
@@ -549,6 +551,75 @@
         .back-button:hover {
             color: #ec4899;
             background: rgba(168, 85, 247, 0.1);
+        }
+
+        .chat-header-info {
+            flex: 1;
+        }
+
+        .chat-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nsfw-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            user-select: none;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .nsfw-toggle:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .nsfw-toggle input {
+            display: none;
+        }
+
+        .nsfw-toggle-switch {
+            width: 36px;
+            height: 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            position: relative;
+            transition: background 0.2s ease;
+        }
+
+        .nsfw-toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.2s ease;
+        }
+
+        .nsfw-toggle input:checked + .nsfw-toggle-switch {
+            background: linear-gradient(135deg, #ec4899, #a855f7);
+        }
+
+        .nsfw-toggle input:checked + .nsfw-toggle-switch::before {
+            transform: translateX(18px);
+        }
+
+        .nsfw-toggle .nsfw-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+            white-space: nowrap;
         }
 
         .chat-header-info {
@@ -1439,6 +1510,13 @@
                     <div class="chat-character-name" id="chatCharacterName">Название</div>
                     <div class="chat-status" data-i18n="online">В сети</div>
                 </div>
+                <div class="chat-header-actions">
+                    <label class="nsfw-toggle">
+                        <input type="checkbox" id="nsfwToggle">
+                        <span class="nsfw-toggle-switch"></span>
+                        <span class="nsfw-label" data-i18n="nsfw">NSFW</span>
+                    </label>
+                </div>
             </div>
             <div class="messages-container" id="messagesContainer"></div>
             <div class="chat-input-section">
@@ -1521,6 +1599,7 @@
                 // Chat
                 online: 'В сети',
                 send: 'Отправить',
+                nsfw: 'NSFW',
                 
                 // Language Modal
                 langModalTitle: 'Выберите язык',
@@ -1572,6 +1651,7 @@
                 // Chat
                 online: 'Online',
                 send: 'Send',
+                nsfw: 'NSFW',
                 
                 // Language Modal
                 langModalTitle: 'Choose Language',
@@ -1603,7 +1683,8 @@
                 username: 'User',
                 avatarData: null,
                 theme: 'purple',
-                language: 'ru'
+                language: 'ru',
+                nsfwEnabled: false
             },
             chats: [
                 {
@@ -1732,6 +1813,10 @@
                 app.currentLanguage = savedLang;
                 app.settings.language = savedLang;
             }
+            
+            if (typeof app.settings.nsfwEnabled !== 'boolean') {
+                app.settings.nsfwEnabled = false;
+            }
         }
 
         function saveSettings() {
@@ -1830,6 +1915,23 @@
                 };
                 picker.appendChild(option);
             });
+        }
+
+        function updateNsfwToggle() {
+            const toggle = document.getElementById('nsfwToggle');
+            if (toggle) {
+                toggle.checked = app.settings.nsfwEnabled;
+            }
+        }
+
+        function handleNsfwToggle() {
+            const toggle = document.getElementById('nsfwToggle');
+            if (!toggle) return;
+            app.settings.nsfwEnabled = toggle.checked;
+            saveSettings();
+            showNotification(app.currentLanguage === 'en' ?
+                `✓ NSFW ${toggle.checked ? 'enabled' : 'disabled'}` :
+                `✓ NSFW ${toggle.checked ? 'включён' : 'выключен'}`);
         }
 
         // ============ AVATAR UPLOAD ============
@@ -2025,6 +2127,7 @@
                 document.getElementById('chatCharacterName').textContent = chat.name;
             }
             
+            updateNsfwToggle();
             renderMessages();
         }
 
@@ -2066,19 +2169,31 @@
                     renderMessages();
                     input.value = '';
                     
+                    const thinkingText = app.currentLanguage === 'en' ? 'AI is thinking...' : 'ИИ думает...';
+                    chat.messages.push({ type: 'bot', text: thinkingText });
+                    renderMessages();
+                    
                     setTimeout(() => {
-                        const botResponses = [
-                            'Очень интересно! 😏',
-                            'Мне нравится твой стиль 💋',
-                            'Ты меня вводишь в искушение 🔥',
-                            'Расскажи мне больше...',
-                            'Я слушаю тебя внимательно 👀',
-                            'Хм, это звучит очень заманчиво 😘'
+                        chat.messages.pop();
+                        const botResponses = app.settings.nsfwEnabled ? [
+                            'Ты заводишь меня... так горячо 🔥',
+                            'Мне нравится, когда ты так говоришь 😏',
+                            'Хочешь, я сделаю вам интригу?',
+                            'Я готова играть по твоим правилам...',
+                            'Скажи, что ты хочешь услышать дальше.',
+                            'Моё воображение уже в огне.'
+                        ] : [
+                            'Как насчёт того, чтобы обсудить фильмы?',
+                            'Я всегда рада поговорить с тобой.',
+                            'Расскажи мне о своих планах на день.',
+                            'Это звучит интересно, продолжай.',
+                            'Мне нравится твой стиль общения.',
+                            'Давай обсудим что-то новое и приятное.'
                         ];
                         const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
                         chat.messages.push({ type: 'bot', text: randomResponse });
                         renderMessages();
-                    }, 500);
+                    }, 800);
                 }
             }
         }
@@ -2158,6 +2273,11 @@
         document.getElementById('backButton').addEventListener('click', closeChat);
         
         document.getElementById('sendButton').addEventListener('click', sendMessage);
+        
+        const nsfwToggle = document.getElementById('nsfwToggle');
+        if (nsfwToggle) {
+            nsfwToggle.addEventListener('change', handleNsfwToggle);
+        }
         
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
