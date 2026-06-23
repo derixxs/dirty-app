@@ -1,29 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DirtyMind AI - Конструктор</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #121214;
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 90vh;
+        }
+        .card {
+            background: #1a1a1e;
+            border: 2px solid #8a2be2;
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+        }
+        h2 { color: #ba55d3; margin-top: 0; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #26262b;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus {
+            border-color: #ba55d3;
+            outline: none;
+        }
+        button {
+            background: linear-gradient(45deg, #8a2be2, #ba55d3);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(186, 85, 211, 0.4);
+        }
+        button:active { transform: scale(0.98); }
+    </style>
 </head>
 <body>
 
 <div class="card">
-    <!-- Настройки интерфейса -->
-    <div class="settings-row">
-        <span id="lang_label">Язык / Language:</span>
-        <select id="lang_select">
-            <option value="ru" selected>Русский</option>
-            <option value="en">English</option>
-        </select>
-    </div>
-
-    <div class="settings-row">
-        <span id="theme_label">Стиль интерфейса:</span>
-        <select id="theme_select">
-            <option value="purple" selected>Фиолетовый</option>
-            <option value="red">Тёмно-красный</option>
-            <option value="cyberpunk">Киберпанк</option>
-        </select>
-    </div>
-
-    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-
-    <!-- Основная форма -->
-    <h2 id="main_title">Создай Персонажа 😈</h2>
+    <h2>Создай Персонажа 😈</h2>
     <input type="text" id="name" placeholder="Имя персонажа...">
     <textarea id="prompt" rows="4" placeholder="Его характер и повадки..."></textarea>
     <button id="send_btn">Готово (Создать)</button>
@@ -33,56 +71,14 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Переводы текстов
-    const translations = {
-        ru: {
-            theme_label: "Стиль интерфейса:",
-            main_title: "Создай Персонажа 😈",
-            name_placeholder: "Имя персонажа...",
-            prompt_placeholder: "Его характер и повадки...",
-            btn_text: "Готово (Создать)",
-            alert_text: "Заполни все поля, бро!"
-        },
-        en: {
-            theme_label: "Interface Style:",
-            main_title: "Create a Character 😈",
-            name_placeholder: "Character name...",
-            prompt_placeholder: "Character traits and behavior...",
-            btn_text: "Ready (Create)",
-            alert_text: "Please fill in all fields, bro!"
-        }
-    };
-
-    let currentLang = "ru";
-
-    // Логика переключения языков
-    document.getElementById("lang_select").addEventListener("change", function(e) {
-        currentLang = e.target.value;
-        updateLanguage();
-    });
-
-    // Логика переключения цветовых тем
-    document.getElementById("theme_select").addEventListener("change", function(e) {
-        document.documentElement.setAttribute("data-theme", e.target.value);
-    });
-
-    function updateLanguage() {
-        const t = translations[currentLang];
-        document.getElementById("theme_label").innerText = t.theme_label;
-        document.getElementById("main_title").innerText = t.main_title;
-        document.getElementById("name").placeholder = t.name_placeholder;
-        document.getElementById("prompt").placeholder = t.prompt_placeholder;
-        document.getElementById("send_btn").innerText = t.btn_text;
-    }
-
-    // Отправка данных в бота
     let btn = document.getElementById("send_btn");
+
     btn.addEventListener("click", function() {
         let name = document.getElementById("name").value;
         let prompt = document.getElementById("prompt").value;
 
         if(!name || !prompt) {
-            alert(translations[currentLang].alert_text);
+            alert("Заполни все поля, бро!");
             return;
         }
 
@@ -95,5 +91,6 @@
         tg.close();
     });
 </script>
+
 </body>
 </html>
