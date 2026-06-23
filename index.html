@@ -992,9 +992,8 @@
 
     <script>
         // ============ КОНФИГУРАЦИЯ ============
-        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:5000/api/chat'
-            : 'https://your-domain.com/api/chat';
+        // Используем относительный путь - бэкенд должен быть на том же домене
+        const API_URL = '/api/chat';
 
         async function askAI(sp, msg) {
             try {
