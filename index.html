@@ -1,1 +1,1591 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DirtyMind</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { width: 100%; height: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
+        body { display: flex; flex-direction: column; background: #050505; color: #fff; }
 
+        :root {
+            --bg-card: #121113; --bg-hover: #1a191c;
+            --radius-card: 20px; --radius-sm: 12px; --radius-sq: 22%;
+            --tr: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --accent: #d4af37; --abg: rgba(212,175,55,0.08); --aglow: rgba(212,175,55,0.15);
+            --bord: rgba(212,175,55,0.08); --bhov: rgba(212,175,55,0.18);
+            --txt2: rgba(255,255,255,0.55); --txt3: rgba(255,255,255,0.3);
+            --nsfw-accent: #800020;
+        }
+        body[data-theme="ocean"] { --accent:#38bdf8; --abg:rgba(56,189,248,0.08); --aglow:rgba(56,189,248,0.15); --bord:rgba(56,189,248,0.08); --bhov:rgba(56,189,248,0.18); }
+        body[data-theme="sunset"] { --accent:#f97316; --abg:rgba(249,115,22,0.08); --aglow:rgba(249,115,22,0.15); --bord:rgba(249,115,22,0.08); --bhov:rgba(249,115,22,0.18); }
+        body[data-theme="forest"] { --accent:#22c55e; --abg:rgba(34,197,94,0.08); --aglow:rgba(34,197,94,0.15); --bord:rgba(34,197,94,0.08); --bhov:rgba(34,197,94,0.18); }
+        body[data-theme="rose"] { --accent:#f43f5e; --abg:rgba(244,63,94,0.08); --aglow:rgba(244,63,94,0.15); --bord:rgba(244,63,94,0.08); --bhov:rgba(244,63,94,0.18); }
+        body[data-theme="amber"] { --accent:#f59e0b; --abg:rgba(245,158,11,0.08); --aglow:rgba(245,158,11,0.15); --bord:rgba(245,158,11,0.08); --bhov:rgba(245,158,11,0.18); }
+        body[data-theme="cyber"] { --accent:#06b6d4; --abg:rgba(6,182,212,0.08); --aglow:rgba(6,182,212,0.15); --bord:rgba(6,182,212,0.08); --bhov:rgba(6,182,212,0.18); }
+        body[data-theme="sakura"] { --accent:#f9a8d4; --abg:rgba(249,168,212,0.08); --aglow:rgba(249,168,212,0.15); --bord:rgba(249,168,212,0.08); --bhov:rgba(249,168,212,0.18); }
+        body[data-theme="emerald"] { --accent:#10b981; --abg:rgba(16,185,129,0.08); --aglow:rgba(16,185,129,0.15); --bord:rgba(16,185,129,0.08); --bhov:rgba(16,185,129,0.18); }
+        body[data-theme="ruby"] { --accent:#ef4444; --abg:rgba(239,68,68,0.08); --aglow:rgba(239,68,68,0.15); --bord:rgba(239,68,68,0.08); --bhov:rgba(239,68,68,0.18); }
+        body[data-nsfw="true"] { --accent:var(--nsfw-accent); --abg:color-mix(in srgb, var(--nsfw-accent) 10%, transparent); --aglow:color-mix(in srgb, var(--nsfw-accent) 20%, transparent); --bord:color-mix(in srgb, var(--nsfw-accent) 12%, transparent); --bhov:color-mix(in srgb, var(--nsfw-accent) 25%, transparent); }
+
+        .bgfx { position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:0;overflow:hidden; }
+        .bgfx .o { position:absolute;border-radius:50%;filter:blur(100px);opacity:0.04;animation:fl 25s ease-in-out infinite; }
+        .bgfx .o:nth-child(1) { width:500px;height:500px;background:var(--accent);top:-20%;left:-20%; }
+        .bgfx .o:nth-child(2) { width:400px;height:400px;background:var(--accent);bottom:-15%;right:-15%;animation-delay:-8s; }
+        .bgfx .o:nth-child(3) { width:300px;height:300px;background:var(--accent);top:40%;left:50%;transform:translate(-50%,-50%);animation-delay:-16s;opacity:0.025; }
+        @keyframes fl { 0%,100%{transform:translate(0,0)scale(1)} 25%{transform:translate(40px,-50px)scale(1.1)} 50%{transform:translate(-30px,30px)scale(0.9)} 75%{transform:translate(50px,40px)scale(1.05)} }
+        ::-webkit-scrollbar { width:3px; }
+        ::-webkit-scrollbar-thumb { background:var(--accent);border-radius:4px; }
+
+        .hdr { position:fixed;top:0;left:0;right:0;z-index:100;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top,12px));display:grid;grid-template-columns:1fr 80px 80px;gap:10px; }
+        .hp { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);padding:14px 16px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(20px);transition:border-color var(--tr); }
+        .ha { width:44px;height:44px;border-radius:var(--radius-sq);background:linear-gradient(135deg,var(--accent),rgba(212,175,55,0.4));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;overflow:hidden;flex-shrink:0;position:relative;transition:background var(--tr); }
+        .ha img { width:100%;height:100%;object-fit:cover; }
+        .ha.on::after { content:'';position:absolute;inset:-3px;border-radius:inherit;border:1.5px solid var(--accent);opacity:0.5;animation:pb 2s ease-in-out infinite; }
+        @keyframes pb { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.04)} }
+        .hi { flex:1;min-width:0; }
+        .hn { font-weight:700;font-size:15px;letter-spacing:-0.2px; }
+        .hb { font-size:12px;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;transition:color var(--tr); }
+        .hsq { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;backdrop-filter:blur(20px);transition:all var(--tr);font-size:11px;font-weight:600;color:var(--txt2); }
+        .hsq:hover { border-color:var(--bhov);background:var(--bg-hover);color:var(--accent); }
+
+        .main { flex:1;margin-top:80px;margin-bottom:88px;overflow-y:auto;position:relative;z-index:1;padding:8px 16px 16px; }
+        .sec { margin-bottom:14px; }
+        .st { font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--txt2);margin-bottom:10px;padding-left:4px; }
+
+        .cb { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);padding:6px 0;backdrop-filter:blur(20px);transition:border-color var(--tr); }
+        .ci { display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;transition:background 0.2s;position:relative; }
+        .ci:not(:last-child)::after { content:'';position:absolute;bottom:0;left:72px;right:16px;height:1px;background:var(--bord); }
+        .ci:hover { background:rgba(255,255,255,0.02); }
+        .ca { width:52px;height:52px;border-radius:var(--radius-sq);background:linear-gradient(135deg,var(--accent),rgba(212,175,55,0.3));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;position:relative;overflow:hidden;transition:background var(--tr); }
+        .ca.on::after { content:'';position:absolute;inset:-2px;border-radius:inherit;border:1.5px solid var(--accent);animation:pb 2s ease-in-out infinite; }
+        .cif { flex:1;min-width:0; }
+        .ct { display:flex;justify-content:space-between;align-items:center;margin-bottom:3px; }
+        .cn { font-weight:700;font-size:14px;letter-spacing:-0.1px;color:var(--accent);transition:color var(--tr); }
+        .ctm { font-size:11px;color:var(--txt3); }
+        .cp { font-size:13px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+
+        .cg { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+        .cc { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);padding:20px 14px 16px;text-align:center;backdrop-filter:blur(20px);cursor:pointer;transition:all var(--tr); }
+        .cc:hover { border-color:var(--bhov);background:var(--bg-hover);transform:translateY(-4px); }
+        .ce { font-size:40px;margin-bottom:8px;display:inline-block; }
+        .cc:hover .ce { animation:wg 0.5s ease; }
+        @keyframes wg { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+        .cname { font-weight:700;font-size:13px;margin-bottom:6px;color:var(--accent);transition:color var(--tr); }
+        .ctags { display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:10px; }
+        .ctag { background:var(--abg);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;border:1px solid var(--bord);transition:all var(--tr); }
+        .bg { background:var(--accent);color:#000;border:none;padding:10px 18px;border-radius:var(--radius-sm);font-weight:700;font-size:13px;cursor:pointer;transition:all var(--tr);width:100%;font-family:inherit; }
+        .bg:hover { transform:translateY(-2px);box-shadow:0 6px 24px var(--aglow); }
+
+        .fb { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);padding:22px 20px;backdrop-filter:blur(20px);transition:border-color var(--tr); }
+        .fg { margin-bottom:16px; }
+        .fl { display:block;font-weight:600;font-size:11px;margin-bottom:8px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px; }
+        .fi,.ft { width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--bord);border-radius:var(--radius-sm);padding:14px 16px;color:#fff;font-family:inherit;font-size:14px;transition:all var(--tr); }
+        .fi:focus,.ft:focus { outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--aglow); }
+        .ft { resize:vertical;min-height:100px;line-height:1.5; }
+
+        .qb { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);backdrop-filter:blur(20px);transition:border-color var(--tr); }
+        .qi { display:flex;justify-content:space-between;align-items:center;padding:16px 18px;position:relative; }
+        .qi:not(:last-child)::after { content:'';position:absolute;bottom:0;left:18px;right:18px;height:1px;background:var(--bord); }
+        .qt { font-weight:600;font-size:14px;margin-bottom:3px; }
+        .qr { font-size:12px;color:var(--accent);font-weight:600;transition:color var(--tr); }
+        .bq { background:var(--accent);color:#000;border:none;padding:8px 18px;border-radius:var(--radius-sm);font-weight:700;font-size:12px;cursor:pointer;transition:all var(--tr);font-family:inherit;margin-left:12px; }
+        .bq:hover { transform:translateY(-2px);box-shadow:0 4px 16px var(--aglow); }
+        .bq.done { background:rgba(255,255,255,0.05);color:var(--txt3);border:1px solid var(--bord);cursor:not-allowed;box-shadow:none; }
+        .bq.done:hover { transform:none;box-shadow:none; }
+
+        .pb { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);padding:28px 20px 24px;text-align:center;backdrop-filter:blur(20px);transition:border-color var(--tr); }
+        .pab { width:80px;height:80px;border-radius:var(--radius-sq);background:linear-gradient(135deg,var(--accent),rgba(212,175,55,0.3));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;transition:background var(--tr); }
+        .pab img { width:100%;height:100%;object-fit:cover; }
+        .pnb { font-size:20px;font-weight:800;letter-spacing:-0.3px;color:var(--accent);transition:color var(--tr); }
+        .ps { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;padding-top:18px;border-top:1px solid var(--bord);transition:border-color var(--tr); }
+        .psv { font-size:18px;font-weight:800;color:var(--accent);transition:color var(--tr); }
+        .psl { font-size:10px;color:var(--txt2);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:0.8px; }
+
+        .sb { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);padding:22px 20px;backdrop-filter:blur(20px);transition:border-color var(--tr); }
+        .stt { font-weight:800;font-size:16px;margin-bottom:18px;color:var(--accent);transition:color var(--tr); }
+        .sg { margin-bottom:18px; }
+        .sg:last-child { margin-bottom:0; }
+        .sl { display:block;font-weight:600;font-size:11px;margin-bottom:8px;color:var(--txt2);text-transform:uppercase;letter-spacing:0.8px; }
+        .si { width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--bord);border-radius:var(--radius-sm);padding:12px 14px;color:#fff;font-family:inherit;font-size:14px;transition:all var(--tr); }
+        .si:focus { outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--aglow); }
+
+        .tg { display:grid;grid-template-columns:repeat(5,1fr);gap:8px; }
+        .td { aspect-ratio:1;border-radius:var(--radius-sm);border:2px solid var(--bord);cursor:pointer;transition:all var(--tr);display:flex;align-items:center;justify-content:center;font-size:16px;position:relative; }
+        .td:hover { transform:scale(1.08);border-color:var(--accent); }
+        .td.act { border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 4px 16px var(--aglow); }
+        .td.act::after { content:'✓';position:absolute;bottom:-2px;right:-2px;background:var(--accent);color:#000;font-size:9px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800; }
+        .tn { font-size:8px;font-weight:600;color:var(--txt3);text-align:center;margin-top:3px;text-transform:uppercase;letter-spacing:0.3px; }
+        .td[data-theme="midnight"] { background:linear-gradient(135deg,#d4af37,#8b7355); }
+        .td[data-theme="ocean"] { background:linear-gradient(135deg,#38bdf8,#818cf8); }
+        .td[data-theme="sunset"] { background:linear-gradient(135deg,#f97316,#e11d48); }
+        .td[data-theme="forest"] { background:linear-gradient(135deg,#22c55e,#06b6d4); }
+        .td[data-theme="rose"] { background:linear-gradient(135deg,#f43f5e,#fb7185); }
+        .td[data-theme="amber"] { background:linear-gradient(135deg,#f59e0b,#d97706); }
+        .td[data-theme="cyber"] { background:linear-gradient(135deg,#06b6d4,#8b5cf6); }
+        .td[data-theme="sakura"] { background:linear-gradient(135deg,#f9a8d4,#c084fc); }
+        .td[data-theme="emerald"] { background:linear-gradient(135deg,#10b981,#34d399); }
+        .td[data-theme="ruby"] { background:linear-gradient(135deg,#ef4444,#dc2626); }
+
+        .lp { display:flex;gap:8px; }
+        .lbtn { padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--bord);background:rgba(0,0,0,0.2);color:var(--txt2);cursor:pointer;transition:all var(--tr);font-weight:600;font-size:12px;font-family:inherit; }
+        .lbtn:hover { border-color:var(--accent);color:var(--accent); }
+        .lbtn.act { background:var(--accent);color:#000;border-color:var(--accent); }
+        .bs { background:var(--accent);color:#000;border:none;padding:14px;border-radius:var(--radius-sm);font-weight:800;font-size:14px;cursor:pointer;transition:all var(--tr);width:100%;margin-top:8px;font-family:inherit; }
+        .bs:hover { transform:translateY(-2px);box-shadow:0 6px 24px var(--aglow); }
+
+        .cs { display:flex;flex-direction:column;height:calc(100vh - 168px); }
+        .ctb { display:flex;align-items:center;gap:12px;padding:12px 0 8px; }
+        .bb { background:var(--bg-card);border:1px solid var(--bord);color:var(--accent);width:40px;height:40px;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--tr);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+        .bb:hover { border-color:var(--accent);background:var(--abg); }
+        .cti { flex:1;min-width:0; }
+        .ctn { font-weight:800;font-size:16px;letter-spacing:-0.2px;color:var(--accent);transition:color var(--tr); }
+        .cts { font-size:11px;color:var(--txt3);font-weight:500; }
+
+        .nt { display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:6px 12px 6px 8px;border-radius:100px;background:var(--bg-card);border:1px solid var(--bord);transition:all var(--tr); }
+        .nt:hover { border-color:var(--accent); }
+        .nt input { display:none; }
+        .nsw { width:36px;height:20px;border-radius:100px;background:rgba(255,255,255,0.06);position:relative;transition:background 0.4s;flex-shrink:0; }
+        .nsw::before { content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--accent);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+        .nt input:checked + .nsw { background:color-mix(in srgb, var(--accent) 30%, transparent); }
+        .nt input:checked + .nsw::before { transform:translateX(16px);background:var(--accent); }
+        .nl { font-size:10px;font-weight:700;color:var(--txt2);white-space:nowrap;letter-spacing:0.5px;text-transform:uppercase; }
+
+        .mc { flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 0 12px; }
+        .msg { display:flex;gap:10px;animation:mi 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes mi { from{opacity:0;transform:translateY(16px)scale(0.95)} to{opacity:1;transform:translateY(0)scale(1)} }
+        .msg.u { justify-content:flex-end; }
+        .mb { max-width:78%;padding:12px 16px;border-radius:20px;word-wrap:break-word;font-size:14px;line-height:1.5;backdrop-filter:blur(10px); }
+        .msg.u .mb { background:var(--accent);color:#000;border-bottom-right-radius:4px;transition:background var(--tr); }
+        .msg.b .mb { background:var(--bg-card);border:1px solid var(--bord);color:#fff;border-bottom-left-radius:4px;transition:border-color var(--tr); }
+        .mt { line-height:1.5; }
+        .mtime { font-size:10px;color:var(--txt3);margin-top:5px;text-align:right;font-weight:500; }
+        .msg.u .mtime { color:rgba(0,0,0,0.4); }
+        .cia { display:flex;gap:10px;margin-top:auto;padding-top:8px; }
+        .ci2 { flex:1;background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-sm);padding:14px 16px;color:#fff;font-family:inherit;font-size:14px;transition:all var(--tr); }
+        .ci2:focus { outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--aglow); }
+        .ci2::placeholder { color:var(--txt3); }
+        .bs2 { background:var(--accent);color:#000;border:none;width:48px;height:48px;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--tr);font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+        .bs2:hover { transform:translateY(-2px)scale(1.05);box-shadow:0 6px 24px var(--aglow); }
+
+        .tb { position:fixed;bottom:0;left:0;right:0;padding:8px 16px;padding-bottom:max(8px,env(safe-area-inset-bottom,8px));z-index:100;pointer-events:none; }
+        .tbi { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);display:flex;height:64px;padding:0 4px;backdrop-filter:blur(24px);pointer-events:all;transition:border-color var(--tr); }
+        .tab { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all var(--tr);color:var(--txt3);gap:2px;font-size:10px;font-weight:600;border-radius:var(--radius-sm);margin:4px 2px; }
+        .tab:hover { color:var(--txt2); }
+        .tab.act { color:var(--accent); }
+        .tab svg { width:22px;height:22px;fill:currentColor;transition:fill var(--tr); }
+        .tab.act svg { fill:var(--accent); }
+        .tl { font-size:9px;letter-spacing:0.3px; }
+
+        .toast { position:fixed;top:90px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--accent);color:var(--accent);padding:12px 24px;border-radius:var(--radius-sm);z-index:200;box-shadow:0 8px 40px rgba(0,0,0,0.5);animation:ti 0.4s cubic-bezier(0.34,1.56,0.64,1);max-width:88%;text-align:center;font-weight:600;font-size:13px;backdrop-filter:blur(20px); }
+        @keyframes ti { from{transform:translateX(-50%)translateY(-20px);opacity:0} to{transform:translateX(-50%)translateY(0);opacity:1} }
+        .toast.hide { animation:to 0.3s ease-out forwards; }
+        @keyframes to { to{transform:translateX(-50%)translateY(-20px);opacity:0} }
+
+        @media (max-width:420px) { .cg{grid-template-columns:1fr} .tg{grid-template-columns:repeat(5,1fr)} .mb{max-width:85%} .hdr{grid-template-columns:1fr 64px 64px;gap:8px;padding:8px 12px} }
+        .sc { display:none;animation:si 0.4s cubic-bezier(0.22,1,0.36,1); }
+        .sc.act { display:block; }
+        @keyframes si { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+        .shop-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+        .shop-card { background:var(--bg-card);border:1px solid var(--bord);border-radius:var(--radius-card);padding:18px 16px;text-align:center;backdrop-filter:blur(20px);transition:all var(--tr);cursor:pointer; }
+        .shop-card:hover { border-color:var(--bhov);background:var(--bg-hover);transform:translateY(-3px); }
+        .shop-card .price { font-size:20px;font-weight:800;color:var(--accent);margin:6px 0; }
+        .shop-card .label { font-size:12px;color:var(--txt2); }
+        .shop-card .badge { font-size:10px;color:var(--txt3);margin-top:4px; }
+        .vip-card { background:linear-gradient(135deg,var(--bg-card),rgba(212,175,55,0.04));border:1px solid var(--accent);border-radius:var(--radius-card);padding:20px;backdrop-filter:blur(20px);transition:all var(--tr);text-align:center; }
+        .vip-card:hover { border-color:var(--bhov);box-shadow:0 0 30px var(--aglow); }
+        .vip-card .vip-price { font-size:28px;font-weight:900;color:var(--accent);margin:8px 0; }
+        .vip-card .vip-desc { font-size:12px;color:var(--txt2);margin-bottom:10px;line-height:1.4; }
+        .nsfw-theme-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px; }
+        .nsfw-theme-opt { background:var(--bg-card);border:2px solid var(--bord);border-radius:var(--radius-sm);padding:14px 8px;text-align:center;cursor:pointer;transition:all var(--tr);position:relative; }
+        .nsfw-theme-opt:hover { border-color:var(--accent); }
+        .nsfw-theme-opt.act { border-color:var(--accent);box-shadow:0 0 0 2px var(--accent); }
+        .nsfw-theme-opt .swatch { width:100%;height:24px;border-radius:6px;margin-bottom:6px; }
+        .nsfw-theme-opt .tname { font-size:10px;font-weight:600;color:var(--txt2); }
+        .nsfw-theme-opt.locked { opacity:0.4;pointer-events:none; }
+        .nsfw-theme-opt.locked::before { content:'🔒';position:absolute;top:4px;right:4px;font-size:12px; }
+
+        .ref-banner {
+            background: var(--bg-card);
+            border: 1px solid var(--bord);
+            border-radius: var(--radius-card);
+            padding: 28px 20px 24px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            transition: border-color var(--tr);
+            position: relative;
+            overflow: hidden;
+        }
+        .ref-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: left 0.6s ease;
+            pointer-events: none;
+        }
+        .ref-banner.shine::before { left: 100%; }
+        .ref-icon-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 18px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ref-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .neon-sphere {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 20px var(--aglow), inset 0 0 20px var(--aglow);
+            animation: neonPulse 3s ease-in-out infinite;
+            transition: border-color var(--tr), box-shadow var(--tr);
+        }
+        .sphere-1 {
+            width: 50px;
+            height: 50px;
+            top: 10px;
+            left: 5px;
+            background: radial-gradient(circle at 30% 30%, var(--accent), transparent);
+            animation-delay: 0s;
+        }
+        .sphere-2 {
+            width: 45px;
+            height: 45px;
+            bottom: 10px;
+            right: 5px;
+            background: radial-gradient(circle at 70% 70%, var(--accent), transparent);
+            animation-delay: 1.5s;
+        }
+        @keyframes neonPulse {
+            0%, 100% { opacity: 0.7; box-shadow: 0 0 15px var(--aglow), inset 0 0 15px var(--aglow); }
+            50% { opacity: 1; box-shadow: 0 0 30px var(--aglow), inset 0 0 30px var(--aglow); }
+        }
+        .ref-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+            transition: color var(--tr);
+        }
+        .ref-subtitle {
+            font-size: 13px;
+            color: var(--txt2);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .ref-link-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .ref-link-input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--bord);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all var(--tr);
+            min-width: 0;
+        }
+        .ref-link-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--aglow);
+        }
+        .ref-copy-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--tr);
+            font-family: inherit;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .ref-copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--aglow);
+        }
+        .ref-copy-btn.copied {
+            background: rgba(255,255,255,0.05);
+            color: var(--txt3);
+            border: 1px solid var(--bord);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .ref-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .ref-stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bord);
+            border-radius: var(--radius-card);
+            padding: 20px 16px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            transition: all var(--tr);
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .ref-stat-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), border-color var(--tr);
+        }
+        .ref-stat-card:nth-child(1).visible { transition-delay: 0.1s; }
+        .ref-stat-card:nth-child(2).visible { transition-delay: 0.2s; }
+        .ref-stat-card:hover {
+            border-color: var(--bhov);
+            background: var(--bg-hover);
+            transform: scale(1.02);
+        }
+        .ref-stat-card.visible:hover { transform: scale(1.02); }
+        .ref-stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--txt2);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+        }
+        .ref-stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent);
+            transition: color var(--tr);
+        }
+
+        .vip-crown {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 36px;
+            height: 28px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            filter: drop-shadow(0 0 12px var(--aglow));
+            animation: crownFloat 3s ease-in-out infinite;
+        }
+        .vip-crown.active { opacity: 1; }
+        .vip-crown svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--accent);
+            transition: fill var(--tr);
+        }
+        @keyframes crownFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-4px); }
+        }
+        .vip-timer {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--abg);
+            border: 1px solid var(--accent);
+            border-radius: 100px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-top: 6px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            box-shadow: 0 0 20px var(--aglow);
+        }
+        .vip-timer.active { opacity: 1; }
+        .vip-timer .timer-icon {
+            font-size: 14px;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
+        .wheel-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .wheel-modal-overlay.active { display: flex; }
+        .wheel-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-card);
+            padding: 30px 24px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 60px var(--aglow);
+            animation: modalSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(-30px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .wheel-modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 20px;
+            transition: color var(--tr);
+        }
+        .wheel-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 24px;
+        }
+        .wheel-svg {
+            width: 100%;
+            height: 100%;
+            transition: transform 4s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+        .wheel-svg.spinning {
+            transform: rotate(1800deg);
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 24px solid var(--accent);
+            z-index: 5;
+            filter: drop-shadow(0 0 12px var(--aglow));
+            transition: border-top-color var(--tr);
+        }
+        .wheel-center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 3;
+            box-shadow: 0 0 24px var(--aglow);
+            transition: border-color var(--tr), box-shadow var(--tr);
+        }
+        .wheel-timer {
+            font-size: 12px;
+            color: var(--txt3);
+            margin-top: 12px;
+            font-weight: 600;
+        }
+        .spin-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--radius-sm);
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--tr);
+            font-family: inherit;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+        .spin-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--aglow);
+        }
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .spin-btn.pulse {
+            animation: btnPulse 2s ease-in-out infinite;
+        }
+        @keyframes btnPulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--aglow); }
+            50% { box-shadow: 0 0 0 12px transparent; }
+        }
+        .wheel-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--bord);
+            color: var(--txt2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all var(--tr);
+        }
+        .wheel-close-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .quest-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bord);
+            border-radius: var(--radius-card);
+            padding: 18px 16px;
+            backdrop-filter: blur(20px);
+            transition: all var(--tr);
+            position: relative;
+            overflow: hidden;
+        }
+        .quest-card.completed {
+            border-color: var(--accent);
+            animation: questGlow 2s ease-in-out infinite;
+        }
+        @keyframes questGlow {
+            0%, 100% { box-shadow: 0 0 5px var(--aglow); }
+            50% { box-shadow: 0 0 20px var(--aglow); }
+        }
+        .quest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .quest-title {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--accent);
+            transition: color var(--tr);
+        }
+        .quest-reward {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            transition: color var(--tr);
+        }
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--aglow));
+            border-radius: 100px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px var(--aglow);
+        }
+        .quest-status {
+            font-size: 11px;
+            color: var(--txt3);
+            font-weight: 600;
+        }
+        .quest-card.completed .quest-status { color: var(--accent); }
+
+        .hornsy-slider-container {
+            background: var(--bg-card);
+            border: 1px solid var(--bord);
+            border-radius: var(--radius-card);
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            transition: border-color var(--tr);
+        }
+        .hornsy-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .hornsy-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color var(--tr);
+        }
+        .hornsy-icon {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+        .hornsy-icon.pulse-fast {
+            animation: firePulse 0.5s ease-in-out infinite;
+        }
+        @keyframes firePulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(-5deg); }
+        }
+        .hornsy-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent);
+            min-width: 30px;
+            text-align: right;
+            transition: color var(--tr);
+        }
+        .hornsy-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 100px;
+            background: linear-gradient(90deg, 
+                rgba(212,175,55,0.2) 0%, 
+                rgba(212,175,55,0.4) 25%, 
+                rgba(239,68,68,0.4) 75%, 
+                rgba(128,0,32,0.6) 100%
+            );
+            outline: none;
+            transition: background var(--tr);
+        }
+        .hornsy-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px var(--aglow);
+            transition: all var(--tr);
+        }
+        .hornsy-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 25px var(--aglow);
+        }
+        .hornsy-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 10px;
+            color: var(--txt3);
+            font-weight: 600;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-card);
+            padding: 30px 24px;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 60px var(--aglow);
+            animation: modalSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-emoji {
+            font-size: 60px;
+            margin-bottom: 12px;
+            animation: modalEmoji 0.6s ease;
+        }
+        @keyframes modalEmoji {
+            0% { transform: scale(0) rotate(-180deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 8px;
+            transition: color var(--tr);
+        }
+        .modal-text {
+            font-size: 13px;
+            color: var(--txt2);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .modal-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 12px 32px;
+            border-radius: var(--radius-sm);
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--tr);
+            font-family: inherit;
+        }
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--aglow);
+        }
+    </style>
+</head>
+<body>
+    <div class="bgfx"><div class="o"></div><div class="o"></div><div class="o"></div></div>
+
+    <div class="hdr">
+        <div class="hp">
+            <div class="ha on" id="hAv">У</div>
+            <div class="hi"><div class="hn" id="hNm">User</div><div class="hb">🪙 <span id="bal">120</span></div></div>
+        </div>
+        <div class="hsq" id="topBtn">👑<span>Топ</span></div>
+        <div class="hsq" id="wheelBtn">🎰<span>Рулетка</span></div>
+    </div>
+
+    <main class="main">
+        <div id="homeSc" class="sc act">
+            <div class="sec"><div class="st">✦ Чаты</div><div class="cb" id="homeCL"></div></div>
+            <div class="sec"><div class="st">✦ Персонажи</div><div class="cg" id="homeCG"></div></div>
+        </div>
+        <div id="chatsSc" class="sc"><div class="sec" style="margin-top:0"><div class="st">💬 Чаты</div><div class="cb" id="chatCL"></div></div></div>
+        <div id="catalogSc" class="sc"><div class="sec" style="margin-top:0"><div class="st">📁 Каталог</div><div class="cg" id="catCG"></div></div></div>
+        <div id="createSc" class="sc">
+            <div class="sec" style="margin-top:0"><div class="st">✨ Создать</div></div>
+            <div class="fb"><form id="createForm"><div class="fg"><label class="fl">Имя</label><input type="text" class="fi" id="charName" placeholder="Секси мама" required></div><div class="fg"><label class="fl">Характер</label><textarea class="ft" id="charPers" placeholder="Опишите..." required></textarea></div><button type="submit" class="bg" style="margin-top:4px">✓ Создать</button></form></div>
+        </div>
+        <div id="questsSc" class="sc">
+            <div class="sec" style="margin-top:0"><div class="st">📖 Квесты</div></div>
+            <div class="sec"><div class="st">📋 Задания</div><div class="qb" id="questsL"></div></div>
+        </div>
+        <div id="profileSc" class="sc">
+            <div class="pb">
+                <div class="pab" id="pAv" style="position:relative;">
+                    <div class="vip-crown" id="vipCrown">
+                        <svg viewBox="0 0 24 24"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19 19 21 19 21C19 21 17 19 17 19C17 19 15.5 20.5 12 20.5C8.5 20.5 7 19 7 19C7 19 5 21 5 21C5 21 5 19 5 19H19Z"/></svg>
+                    </div>
+                    👤
+                </div>
+                <div class="pnb" id="pNm">User</div>
+                <div class="vip-timer" id="vipTimer" style="display:none;">
+                    <span class="timer-icon">⏱️</span>
+                    <span class="timer-text">VIP: 0ч 0м 0с</span>
+                </div>
+                <div class="ps"><div><div class="psv" id="pBal">120</div><div class="psl">Баланс</div></div><div><div class="psv" id="pChars">0</div><div class="psl">Персонажи</div></div><div><div class="psv" id="pUid">—</div><div class="psl">ID</div></div></div>
+            </div>
+            <div class="sb">
+                <div class="stt">⚙️ Настройки</div>
+                <div class="sg"><label class="sl">Имя</label><input type="text" class="si" id="setName" placeholder="Введите имя"></div>
+                <div class="sg">
+                    <label class="sl">Аватар</label>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <div class="ha" id="setAv" style="width:46px;height:46px;font-size:20px;">👤</div>
+                        <label style="background:rgba(0,0,0,0.3);border:1px solid var(--bord);padding:8px 16px;border-radius:var(--radius-sm);font-weight:600;font-size:12px;cursor:pointer;transition:all var(--tr);">📸 Выбрать<input type="file" id="avFile" accept="image/*" style="display:none;"></label>
+                        <button type="button" id="avRemove" style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15);padding:8px 14px;border-radius:var(--radius-sm);font-weight:600;font-size:11px;cursor:pointer;display:none;transition:all var(--tr);">✕</button>
+                    </div>
+                </div>
+                <div class="sg"><label class="sl">Тема</label><div class="tg" id="themeG"></div></div>
+                <div class="sg"><label class="sl">Язык</label><div class="lp" id="langP"></div></div>
+                <div class="sg"><label class="sl">NSFW</label><label class="nt" style="display:inline-flex;margin-top:4px"><input type="checkbox" id="nsfwS"><span class="nsw"></span><span class="nl">Uncensored</span></label></div>
+                <div class="sg">
+                    <label class="sl">Уровень пошлости</label>
+                    <div class="hornsy-slider-container">
+                        <div class="hornsy-header">
+                            <div class="hornsy-title">
+                                <span class="hornsy-icon" id="hornsyIcon">🔥</span>
+                                <span>Horny Scale</span>
+                            </div>
+                            <div class="hornsy-value" id="hornsyValue">1</div>
+                        </div>
+                        <input type="range" class="hornsy-slider" id="hornsySlider" min="1" max="5" value="1" step="1">
+                        <div class="hornsy-labels">
+                            <span>🥺</span>
+                            <span>😏</span>
+                            <span>🔥</span>
+                            <span>💦</span>
+                            <span>👑</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="friendsSc" class="sc">
+            <div class="sec" style="margin-top:0">
+                <div class="st">👥 Друзья</div>
+                <div class="ref-banner">
+                    <div class="ref-icon-container">
+                        <div class="ref-icon">
+                            <div class="neon-sphere sphere-1"></div>
+                            <div class="neon-sphere sphere-2"></div>
+                        </div>
+                    </div>
+                    <div class="ref-title">Приглашай кентов — получай +50 токенов 🪙</div>
+                    <div class="ref-subtitle">Твой друг также получит +50 токенов при регистрации!</div>
+                    <div class="ref-link-container">
+                        <input type="text" class="ref-link-input" id="refLink" value="https://t.me/bot?start=user_id" readonly>
+                        <button class="ref-copy-btn" id="copyBtn">Скопировать</button>
+                    </div>
+                </div>
+            </div>
+            <div class="ref-stats-grid">
+                <div class="ref-stat-card" id="statFriends">
+                    <div class="ref-stat-label">Приглашено друзей</div>
+                    <div class="ref-stat-value">0 👥</div>
+                </div>
+                <div class="ref-stat-card" id="statTokens">
+                    <div class="ref-stat-label">Заработано токенов</div>
+                    <div class="ref-stat-value">0 🪙</div>
+                </div>
+            </div>
+        </div>
+        <div id="shopSc" class="sc">
+            <div class="sec" style="margin-top:0"><div class="st">🛍️ Магазин</div></div>
+            <div class="sec"><div class="st">💰 Токены</div>
+                <div class="shop-grid">
+                    <div class="shop-card" onclick="toast('🎉 +50 токенов')"><div class="price">50 🪙</div><div class="label">Маленький пакет</div><div class="badge">49₽</div></div>
+                    <div class="shop-card" onclick="toast('🎉 +200 токенов')"><div class="price">200 🪙</div><div class="label">Средний пакет</div><div class="badge">149₽ ★</div></div>
+                    <div class="shop-card" onclick="toast('🎉 +500 токенов')"><div class="price">500 🪙</div><div class="label">Большой пакет</div><div class="badge">299₽ ★★</div></div>
+                    <div class="shop-card" onclick="toast('🎉 +1200 токенов')"><div class="price">1200 🪙</div><div class="label">Мега пакет</div><div class="badge">499₽ ★★★</div></div>
+                </div>
+            </div>
+            <div class="sec"><div class="st">👑 VIP</div>
+                <div class="vip-card">
+                    <div style="font-size:32px;margin-bottom:4px">👑</div>
+                    <div class="vip-price">VIP</div>
+                    <div class="vip-desc">Открывает доступ к эксклюзивным NSFW-темам оформления</div>
+                    <button class="bg" onclick="buyVip()" id="vipBtn" style="max-width:200px;margin:0 auto">Купить VIP 999₽</button>
+                </div>
+            </div>
+            <div class="sec"><div class="st">🎨 NSFW Кастомизация</div>
+                <div class="sb" id="nsfwCustomBlock">
+                    <div class="sg" style="margin-bottom:0"><label class="sl">Выбери цвет для NSFW режима</label>
+                        <div class="nsfw-theme-grid" id="nsfwThemeGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="chatSc" class="sc cs" style="display:none;">
+            <div class="ctb">
+                <button class="bb" id="backBtn">←</button>
+                <div class="cti"><div class="ctn" id="chatName">Название</div><div class="cts">online</div></div>
+                <label class="nt"><input type="checkbox" id="nsfwC"><span class="nsw"></span><span class="nl">NSFW</span></label>
+            </div>
+            <div class="mc" id="msgC"></div>
+            <div class="cia"><input type="text" class="ci2" id="msgIn" placeholder="Сообщение..."><button class="bs2" id="sendBtn">➤</button></div>
+        </div>
+    </main>
+
+    <nav class="tb">
+        <div class="tbi">
+            <div class="tab act" data-tab="home"><svg viewBox="0 0 24 24"><path d="M12 3L4 9v12h5v-7h6v7h5V9z"/></svg><span class="tl">Главная</span></div>
+            <div class="tab" data-tab="catalog"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z"/></svg><span class="tl">Каталог</span></div>
+            <div class="tab" data-tab="shop"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 14.75l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.86-7.01L19.42 4h-.01l-1.1 2-2.76 5H8.53l-.13-.27L6.16 6l-.95-2-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"/></svg><span class="tl">Магазин</span></div>
+            <div class="tab" data-tab="friends"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="tl">Друзья</span></div>
+            <div class="tab" data-tab="quests"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg><span class="tl">Квесты</span></div>
+            <div class="tab" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span class="tl">Профиль</span></div>
+        </div>
+    </nav>
+
+    <!-- Wheel Modal -->
+    <div class="wheel-modal-overlay" id="wheelModal">
+        <div class="wheel-modal">
+            <button class="wheel-close-btn" id="wheelCloseBtn">×</button>
+            <div class="wheel-modal-title">🎰 Колесо Фортуны</div>
+            <div class="wheel-wrapper">
+                <div class="wheel-pointer"></div>
+                <svg class="wheel-svg" id="wheel" viewBox="0 0 400 400" width="100%" height="100%">
+                    <!-- Sector 1: 5 🪙 (0°-60°) - Top -->
+                    <g transform="rotate(0, 200, 200)">
+                        <path d="M 200 200 L 200 40 A 160 160 0 0 1 338.56 120 Z" fill="#1a1a1c" stroke="var(--accent)" stroke-width="1.5"/>
+                        <text x="200" y="85" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="800" font-family="Inter">5 🪙</text>
+                    </g>
+                    <!-- Sector 2: 10 🪙 (60°-120°) - Upper Right -->
+                    <g transform="rotate(60, 200, 200)">
+                        <path d="M 200 200 L 338.56 120 A 160 160 0 0 1 338.56 280 Z" fill="#1f1f22" stroke="var(--accent)" stroke-width="1.5"/>
+                        <text x="200" y="85" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="800" font-family="Inter">10 🪙</text>
+                    </g>
+                    <!-- Sector 3: 25 🪙 (120°-180°) - Lower Right -->
+                    <g transform="rotate(120, 200, 200)">
+                        <path d="M 200 200 L 338.56 280 A 160 160 0 0 1 200 360 Z" fill="#1a1a1c" stroke="var(--accent)" stroke-width="1.5"/>
+                        <text x="200" y="85" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="800" font-family="Inter">25 🪙</text>
+                    </g>
+                    <!-- Sector 4: 50 🪙 (180°-240°) - Bottom -->
+                    <g transform="rotate(180, 200, 200)">
+                        <path d="M 200 200 L 200 360 A 160 160 0 0 1 61.44 280 Z" fill="#1f1f22" stroke="var(--accent)" stroke-width="1.5"/>
+                        <text x="200" y="85" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="800" font-family="Inter">50 🪙</text>
+                    </g>
+                    <!-- Sector 5: 0 🪙 (240°-300°) - Lower Left -->
+                    <g transform="rotate(240, 200, 200)">
+                        <path d="M 200 200 L 61.44 280 A 160 160 0 0 1 61.44 120 Z" fill="#1a1a1c" stroke="var(--accent)" stroke-width="1.5"/>
+                        <text x="200" y="85" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="800" font-family="Inter">0 🪙</text>
+                    </g>
+                    <!-- Sector 6: 👑 VIP (300°-360°) - Upper Left -->
+                    <g transform="rotate(300, 200, 200)">
+                        <path d="M 200 200 L 61.44 120 A 160 160 0 0 1 200 40 Z" fill="#1f1f22" stroke="var(--accent)" stroke-width="1.5"/>
+                        <text x="200" y="85" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="800" font-family="Inter">👑 VIP</text>
+                    </g>
+                </svg>
+                <div class="wheel-center-circle">🎰</div>
+            </div>
+            <button class="spin-btn" id="spinBtn">🎲 Крутить бесплатно</button>
+            <div class="wheel-timer" id="wheelTimer" style="display:none;">
+                Следующий спин через: <span id="spinCountdown">24:00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ КОНФИГУРАЦИЯ ============
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api/chat'
+            : 'https://your-domain.com/api/chat';
+
+        async function askAI(sp, msg) {
+            try {
+                const r = await fetch(API_URL, {
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({system_prompt:sp, user_message:msg}),
+                    signal:AbortSignal.timeout(20000)
+                });
+                const j = await r.json();
+                if(j.error) throw new Error(j.error);
+                return j.response;
+            } catch(e) {
+                return "⚠️ Ошибка соединения с сервером. Попробуй позже.";
+            }
+        }
+
+        const themes = [
+            {id:'midnight',name:'Gold',emoji:'✨'},{id:'ocean',name:'Ocean',emoji:'🌊'},{id:'sunset',name:'Sunset',emoji:'🌅'},
+            {id:'forest',name:'Forest',emoji:'🌲'},{id:'rose',name:'Rose',emoji:'🌹'},{id:'amber',name:'Amber',emoji:'🟠'},
+            {id:'cyber',name:'Cyber',emoji:'💠'},{id:'sakura',name:'Sakura',emoji:'🌸'},{id:'emerald',name:'Emerald',emoji:'💚'},{id:'ruby',name:'Ruby',emoji:'❤️'}
+        ];
+
+        const nsfwThemes = [
+            {id:'rose',name:'Midnight Rose',color:'#800020'},
+            {id:'synth',name:'Cyber Synth',color:'#ff00ff'},
+            {id:'toxic',name:'Neon Toxic',color:'#00ffc8'}
+        ];
+
+        const app = {
+            balance:120, curSc:'home', curChat:null, createdChars:0, lang:'ru',
+            s:{username:'User',avatarData:null,theme:'midnight',language:'ru',nsfw:false,nsfwTheme:'rose'},
+            isVip:false,
+            chats:[
+                {id:1,name:'Секси мама',emoji:'👩',preview:'Привет, малыш! Как дела?',time:'12:45',online:true,msgs:[{t:'bot',text:'Привет, малыш! Как дела?',time:'12:45'}]},
+                {id:2,name:'Твоя пошлая мачеха',emoji:'👸',preview:'Хорошего дня!',time:'10:30',online:true,msgs:[{t:'bot',text:'Привет, дорогой! Как прошёл день?',time:'10:30'}]},
+                {id:3,name:'Игривая королева',emoji:'👑',preview:'До скоро, красавчик!',time:'вчера',online:false,msgs:[{t:'bot',text:'Когда ты снова мне напишешь?',time:'вчера'}]}
+            ],
+            chars:[
+                {id:1,name:'Секси мама',emoji:'👩',tags:['энергичная','игривая']},
+                {id:2,name:'Твоя пошлая мачеха',emoji:'👸',tags:['пошлая','возбуждающая']},
+                {id:3,name:'Игривая королева',emoji:'👑',tags:['игривая','уверенная']},
+                {id:4,name:'Таинственная ночь',emoji:'🌙',tags:['таинственная','соблазнительная']}
+            ],
+            quests:[
+                {id:1,title:'Посмотреть рекламу',reward:10,done:false},
+                {id:2,title:'Пригласить друга',reward:50,done:false},
+                {id:3,title:'Написать 5 сообщений',reward:25,done:false},
+                {id:4,title:'Открыть новый чат',reward:15,done:false}
+            ]
+        };
+
+        function applyNsfw(v) {
+            document.body.setAttribute('data-nsfw', v ? 'true' : 'false');
+            const theme = nsfwThemes.find(t => t.id === app.s.nsfwTheme) || nsfwThemes[0];
+            document.documentElement.style.setProperty('--nsfw-accent', theme.color);
+        }
+        function loadS() {
+            const s = localStorage.getItem('dmS');
+            if(s) app.s = {...app.s,...JSON.parse(s)};
+            const l = localStorage.getItem('dmL');
+            if(l) { app.lang = l; app.s.language = l; }
+            if(typeof app.s.nsfw !== 'boolean') app.s.nsfw = false;
+            if(!app.s.nsfwTheme) app.s.nsfwTheme = 'rose';
+            applyNsfw(app.s.nsfw);
+            document.body.setAttribute('data-theme', app.s.theme);
+            const vip = localStorage.getItem('dmVip');
+            if(vip) app.isVip = vip === 'true';
+        }
+        function saveS() { localStorage.setItem('dmS', JSON.stringify(app.s)); localStorage.setItem('dmL', app.lang); localStorage.setItem('dmVip', app.isVip ? 'true' : 'false'); }
+
+        function applyTheme(id) {
+            document.body.setAttribute('data-theme', id);
+            app.s.theme = id; saveS(); renderTG();
+            toast('✓ Тема: ' + themes.find(t=>t.id===id)?.name);
+        }
+
+        function updUI() {
+            ['hAv','pAv','setAv'].forEach(id => {
+                const el = document.getElementById(id); if(!el) return;
+                el.innerHTML = app.s.avatarData ? `<img src="${app.s.avatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : '👤';
+            });
+            document.getElementById('hNm').textContent = app.s.username;
+            document.getElementById('pNm').textContent = app.s.username;
+            document.getElementById('avRemove').style.display = app.s.avatarData ? 'block' : 'none';
+        }
+
+        function renderTG() {
+            const g = document.getElementById('themeG'); g.innerHTML = '';
+            themes.forEach(t => {
+                const w = document.createElement('div'); w.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;';
+                const d = document.createElement('div'); d.className = `td ${t.id === app.s.theme ? 'act' : ''}`;
+                d.dataset.theme = t.id; d.textContent = t.emoji;
+                d.onclick = () => applyTheme(t.id);
+                const n = document.createElement('div'); n.className = 'tn'; n.textContent = t.name;
+                w.appendChild(d); w.appendChild(n); g.appendChild(w);
+            });
+        }
+
+        function renderLP() {
+            const p = document.getElementById('langP'); p.innerHTML = '';
+            [{id:'ru',label:'🇷🇺 Рус'},{id:'en',label:'🇬🇧 Eng'}].forEach(l => {
+                const b = document.createElement('button'); b.type = 'button';
+                b.className = `lbtn ${l.id === app.lang ? 'act' : ''}`; b.textContent = l.label;
+                b.onclick = () => { app.lang = l.id; app.s.language = l.id; renderLP(); saveS(); toast('✓ Язык'); };
+                p.appendChild(b);
+            });
+        }
+
+        function renderNsfwThemes() {
+            const g = document.getElementById('nsfwThemeGrid'); if(!g) return; g.innerHTML = '';
+            const block = document.getElementById('nsfwCustomBlock');
+            if(!app.isVip) {
+                block.style.opacity = '0.5';
+                block.style.pointerEvents = 'none';
+                nsfwThemes.forEach(t => {
+                    const d = document.createElement('div'); d.className = 'nsfw-theme-opt locked';
+                    d.innerHTML = `<div class="swatch" style="background:${t.color}"></div><div class="tname">${t.name}</div>`;
+                    g.appendChild(d);
+                });
+                return;
+            }
+            block.style.opacity = '1';
+            block.style.pointerEvents = 'all';
+            nsfwThemes.forEach(t => {
+                const d = document.createElement('div'); d.className = `nsfw-theme-opt ${t.id === app.s.nsfwTheme ? 'act' : ''}`;
+                d.innerHTML = `<div class="swatch" style="background:${t.color}"></div><div class="tname">${t.name}</div>`;
+                d.onclick = () => { app.s.nsfwTheme = t.id; saveS(); applyNsfw(app.s.nsfw); renderNsfwThemes(); toast('✓ NSFW тема: ' + t.name); };
+                g.appendChild(d);
+            });
+        }
+
+        function buyVip() {
+            app.isVip = true;
+            saveS();
+            renderNsfwThemes();
+            toast('👑 VIP активирован!');
+        }
+
+        function syncNsfw() {
+            const c1 = document.getElementById('nsfwC'), c2 = document.getElementById('nsfwS');
+            if(c1) c1.checked = app.s.nsfw;
+            if(c2) c2.checked = app.s.nsfw;
+        }
+        function hndlNsfw(el) { app.s.nsfw = el.checked; applyNsfw(app.s.nsfw); saveS(); syncNsfw(); toast(`NSFW ${el.checked ? 'ON' : 'OFF'}`); }
+
+        document.getElementById('avFile').addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                const r = new FileReader();
+                r.onload = (ev) => { app.s.avatarData = ev.target.result; updUI(); };
+                r.readAsDataURL(e.target.files[0]);
+            }
+        });
+        document.getElementById('avRemove').addEventListener('click', () => { app.s.avatarData = null; updUI(); document.getElementById('avFile').value = ''; });
+
+        function initTG() {
+            const w = window.Telegram?.WebApp;
+            if(w) { w.ready(); const u = w.initDataUnsafe?.user; if(u) { app.s.username = u.first_name || 'User'; document.getElementById('pUid').textContent = u.id || '—'; } }
+        }
+
+        function updBal() { document.getElementById('bal').textContent = app.balance; document.getElementById('pBal').textContent = app.balance; }
+
+        function renderCL(id) {
+            const c = document.getElementById(id); if(!c) return; c.innerHTML = '';
+            app.chats.forEach(ch => {
+                const el = document.createElement('div'); el.className = 'ci';
+                el.onclick = () => openChat(ch.id);
+                el.innerHTML = `<div class="ca ${ch.online ? 'on' : ''}">${ch.emoji}</div><div class="cif"><div class="ct"><span class="cn">${ch.name}</span><span class="ctm">${ch.time}</span></div><div class="cp">${ch.preview}</div></div>`;
+                c.appendChild(el);
+            });
+        }
+
+        function renderCG() {
+            ['homeCG','catCG'].forEach(gid => {
+                const g = document.getElementById(gid); if(!g) return; g.innerHTML = '';
+                app.chars.forEach(ch => {
+                    const tags = ch.tags.map(t => `<span class="ctag">${t}</span>`).join('');
+                    const c = document.createElement('div'); c.className = 'cc';
+                    c.innerHTML = `<div class="ce">${ch.emoji}</div><div class="cname">${ch.name}</div><div class="ctags">${tags}</div><button class="bg" onclick="event.stopPropagation();openChat(${ch.id})">💬 Чат</button>`;
+                    g.appendChild(c);
+                });
+            });
+        }
+
+        function renderQL() {
+            const l = document.getElementById('questsL'); if(!l) return; l.innerHTML = '';
+            app.quests.forEach(q => {
+                const d = q.done; const el = document.createElement('div'); el.className = 'qi';
+                el.innerHTML = `<div><div class="qt">${q.title}</div><div class="qr">+${q.reward} 🪙</div></div><button class="bq ${d ? 'done' : ''}" onclick="compQ(${q.id})" ${d ? 'disabled' : ''}>${d ? '✓' : 'Взять'}</button>`;
+                l.appendChild(el);
+            });
+        }
+
+        function fmtTime(ts) { return new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
+
+        function renderMsgs() {
+            const c = document.getElementById('msgC'); c.innerHTML = '';
+            if(app.curChat) {
+                const ch = app.chats.find(x => x.id === app.curChat);
+                if(ch?.msgs) {
+                    ch.msgs.forEach(m => {
+                        const t = m.time || fmtTime(Date.now());
+                        const el = document.createElement('div'); el.className = `msg ${m.t === 'user' ? 'u' : 'b'}`;
+                        el.innerHTML = `<div class="mb"><div class="mt">${m.text}</div><div class="mtime">${t}</div></div>`;
+                        c.appendChild(el);
+                    });
+                    c.scrollTop = c.scrollHeight;
+                }
+            }
+        }
+
+        function switchSc(name) {
+            document.querySelectorAll('.sc').forEach(s => s.classList.remove('act'));
+            const el = document.getElementById(name + 'Sc'); if(el) el.classList.add('act');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('act'));
+            const tab = document.querySelector(`[data-tab="${name}"]`); if(tab) tab.classList.add('act');
+            app.curSc = name;
+            if(name === 'home') { renderCL('homeCL'); renderCG(); }
+            else if(name === 'catalog') renderCG();
+            else if(name === 'quests') renderQL();
+            else if(name === 'shop') renderNsfwThemes();
+            else if(name === 'profile') { document.getElementById('setName').value = app.s.username; renderTG(); renderLP(); updUI(); syncNsfw(); }
+            else if(name === 'friends') {
+                setTimeout(() => {
+                    const statFriends = document.getElementById('statFriends');
+                    const statTokens = document.getElementById('statTokens');
+                    if(statFriends) statFriends.classList.add('visible');
+                    if(statTokens) statTokens.classList.add('visible');
+                }, 100);
+            }
+            document.querySelector('.main').scrollTop = 0;
+        }
+
+        function openChat(id) {
+            app.curChat = id;
+            document.querySelectorAll('.sc').forEach(s => s.style.display = 'none');
+            document.getElementById('chatSc').style.display = 'flex';
+            const ch = app.chats.find(c => c.id === id);
+            if(ch) document.getElementById('chatName').textContent = ch.name;
+            syncNsfw(); renderMsgs();
+        }
+        function closeChat() { app.curChat = null; document.getElementById('chatSc').style.display = 'none'; switchSc('home'); }
+        function compQ(id) { const q = app.quests.find(x => x.id === id); if(q && !q.done) { q.done = true; app.balance += q.reward; updBal(); renderQL(); toast(`+${q.reward} 🪙`); } }
+
+        async function sendMsg() {
+            const inp = document.getElementById('msgIn');
+            const text = inp.value.trim(); if(!text || !app.curChat) return;
+            const ch = app.chats.find(c => c.id === app.curChat); if(!ch) return;
+            const now = Date.now();
+            ch.msgs.push({t:'user',text,time:fmtTime(now)}); renderMsgs(); inp.value = '';
+            ch.msgs.push({t:'bot',text:'🤔 Думаю...',time:fmtTime(Date.now())}); renderMsgs();
+            const sys = app.s.nsfw
+                ? `Ты ${ch.name}. Ролевая игра 18+. Полный NSFW. Пошло, грязно, без цензуры. Отвечай коротко и горячо.`
+                : `Ты ${ch.name}. Дружелюбно, мило, кокетливо, но прилично. Без 18+`;
+            try {
+                const resp = await askAI(sys, text);
+                ch.msgs.pop(); ch.msgs.push({t:'bot',text:resp,time:fmtTime(Date.now())}); renderMsgs();
+                const w = window.Telegram?.WebApp;
+                if(w?.sendData) w.sendData(JSON.stringify({type:'chat_message',char_name:ch.name,user_message:text,ai_response:resp,nsfw:app.s.nsfw}));
+            } catch(e) {
+                ch.msgs.pop();
+                ch.msgs.push({t:'bot',text:'⚠️ Ошибка AI. Попробуй позже.',time:fmtTime(Date.now())}); renderMsgs();
+            }
+        }
+
+        function toast(msg) {
+            const o = document.querySelector('.toast'); if(o) o.remove();
+            const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 2200);
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchSc(tab.dataset.tab)));
+        document.getElementById('backBtn').addEventListener('click', closeChat);
+        document.getElementById('sendBtn').addEventListener('click', sendMsg);
+        document.getElementById('msgIn').addEventListener('keypress', (e) => { if(e.key==='Enter'){e.preventDefault();sendMsg();} });
+        document.getElementById('nsfwC')?.addEventListener('change', function() { hndlNsfw(this); });
+        document.getElementById('nsfwS')?.addEventListener('change', function() { hndlNsfw(this); });
+        document.getElementById('createForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('charName').value;
+            const pers = document.getElementById('charPers').value;
+            const w = window.Telegram?.WebApp;
+            if(w) w.sendData(JSON.stringify({type:'create_character',name,personality:pers,timestamp:new Date().toISOString()}));
+            app.createdChars++; document.getElementById('pChars').textContent = app.createdChars;
+            toast('✓ Создан!'); document.getElementById('createForm').reset();
+        });
+        document.getElementById('setName').addEventListener('blur', function() {
+            const name = this.value.trim();
+            if(name && name !== app.s.username) {
+                app.s.username = name;
+                updUI();
+                saveS();
+                toast('✓ Имя сохранено');
+            } else if(!name) {
+                this.value = app.s.username;
+            }
+        });
+        document.getElementById('setName').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') this.blur();
+        });
+
+        loadS(); initTG(); updUI(); updBal();
+        renderCL('homeCL'); renderCG(); renderQL(); syncNsfw();
+        renderNsfwThemes();
+
+        // ============ РЕФЕРАЛЬНАЯ СИСТЕМА ============
+        const copyBtn = document.getElementById('copyBtn');
+        const refLink = document.getElementById('refLink');
+        const refBanner = document.querySelector('.ref-banner');
+        const statFriends = document.getElementById('statFriends');
+        const statTokens = document.getElementById('statTokens');
+
+        let referralStats = { friendsCount: 0, tokensEarned: 0 };
+
+        function updateReferralStats() {
+            if(statFriends) statFriends.querySelector('.ref-stat-value').textContent = referralStats.friendsCount + ' 👥';
+            if(statTokens) statTokens.querySelector('.ref-stat-value').textContent = referralStats.tokensEarned + ' 🪙';
+        }
+
+        updateReferralStats();
+
+        if(copyBtn && refLink && refBanner) {
+            copyBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(refLink.value);
+                    copyBtn.textContent = 'Скопировано! ✅';
+                    copyBtn.classList.add('copied');
+                    refBanner.classList.add('shine');
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Скопировать';
+                        copyBtn.classList.remove('copied');
+                        refBanner.classList.remove('shine');
+                    }, 2000);
+                    toast('✓ Ссылка скопирована!');
+                } catch(err) {
+                    toast('⚠️ Не удалось скопировать');
+                }
+            });
+        }
+
+        // ============ VIP СТАТУС ЛОГИКА ============
+        let vipTimeLeft = 0;
+        let vipTimerInterval = null;
+        const vipCrown = document.getElementById('vipCrown');
+        const vipTimer = document.getElementById('vipTimer');
+        const vipTimerText = vipTimer?.querySelector('.timer-text');
+
+        function updateVipUI() {
+            if(!vipCrown || !vipTimer) return;
+            if(app.isVip && vipTimeLeft > 0) {
+                vipCrown.classList.add('active');
+                vipTimer.style.display = 'inline-flex';
+                vipTimer.classList.add('active');
+            } else {
+                vipCrown.classList.remove('active');
+                vipTimer.style.display = 'none';
+                vipTimer.classList.remove('active');
+                if(vipTimeLeft <= 0) {
+                    app.isVip = false;
+                    saveS();
+                    renderNsfwThemes();
+                }
+            }
+        }
+
+        function startVipTimer() {
+            if(vipTimerInterval) clearInterval(vipTimerInterval);
+            vipTimerInterval = setInterval(() => {
+                if(vipTimeLeft > 0) {
+                    vipTimeLeft--;
+                    const hours = Math.floor(vipTimeLeft / 3600);
+                    const minutes = Math.floor((vipTimeLeft % 3600) / 60);
+                    const seconds = vipTimeLeft % 60;
+                    if(vipTimerText) vipTimerText.textContent = `VIP: ${hours}ч ${minutes}м ${seconds}с`;
+                } else {
+                    updateVipUI();
+                    if(vipTimerInterval) clearInterval(vipTimerInterval);
+                }
+            }, 1000);
+        }
+
+        function activateVip(durationSeconds = 86400) {
+            app.isVip = true;
+            vipTimeLeft = durationSeconds;
+            saveS();
+            updateVipUI();
+            startVipTimer();
+            renderNsfwThemes();
+            toast('👑 VIP активирован на 24 часа!');
+            haptic('success');
+        }
+
+        const savedVipTime = localStorage.getItem('dmVipTime');
+        if(savedVipTime) {
+            const savedTime = parseInt(savedVipTime);
+            const elapsed = Math.floor((Date.now() - savedTime) / 1000);
+            vipTimeLeft = Math.max(0, 86400 - elapsed);
+            if(vipTimeLeft > 0) startVipTimer();
+        }
+
+        // ============ КОЛЕСО ФОРТУНЫ В МОДАЛКЕ (SVG) ============
+        const wheelModal = document.getElementById('wheelModal');
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spinBtn');
+        const wheelTimer = document.getElementById('wheelTimer');
+        const spinCountdown = document.getElementById('spinCountdown');
+        const wheelCloseBtn = document.getElementById('wheelCloseBtn');
+        let canSpin = true;
+        let spinCooldown = 0;
+
+        const wheelSectors = [
+            {reward: 5, weight: 25, emoji: '🪙'},
+            {reward: 10, weight: 20, emoji: '🪙'},
+            {reward: 25, weight: 15, emoji: '🪙'},
+            {reward: 50, weight: 10, emoji: '🪙'},
+            {reward: 0, weight: 30, emoji: '😢'},
+            {reward: 'vip', weight: 0.5, emoji: '👑'}
+        ];
+
+        function getWeightedRandom() {
+            const totalWeight = wheelSectors.reduce((sum, s) => sum + s.weight, 0);
+            let random = Math.random() * totalWeight;
+            for(const sector of wheelSectors) {
+                random -= sector.weight;
+                if(random <= 0) return sector;
+            }
+            return wheelSectors[0];
+        }
+
+        function spinWheel() {
+            if(!canSpin || !wheel) return;
+            canSpin = false;
+            spinBtn.disabled = true;
+            spinBtn.textContent = '🎰 Крутим...';
+            haptic('light');
+            
+            const result = getWeightedRandom();
+            const baseRotation = 1800;
+            const randomOffset = Math.random() * 360;
+            
+            wheel.style.transform = `rotate(${baseRotation + randomOffset}deg)`;
+            
+            setTimeout(() => {
+                wheel.style.transition = 'none';
+                wheel.style.transform = 'rotate(0deg)';
+                
+                setTimeout(() => {
+                    wheel.style.transition = 'transform 4s cubic-bezier(0.1, 1, 0.1, 1)';
+                    canSpin = true;
+                    
+                    if(result.reward === 'vip') {
+                        showModal('👑', 'VIP ПОБЕДА!', 'Ты выиграл VIP статус на 24 часа!');
+                        activateVip(86400);
+                    } else if(result.reward > 0) {
+                        showModal(result.emoji, 'ПОБЕДА!', `Ты выиграл ${result.reward} 🪙 токенов!`);
+                        app.balance += result.reward;
+                        updBal();
+                    } else {
+                        showModal('😢', 'Попробуй снова', 'В этот раз не повезло. Попробуй завтра!');
+                    }
+                    
+                    spinCooldown = 86400;
+                    if(wheelTimer) wheelTimer.style.display = 'block';
+                    updateSpinCountdown();
+                    
+                    const cooldownInterval = setInterval(() => {
+                        spinCooldown--;
+                        updateSpinCountdown();
+                        if(spinCooldown <= 0) {
+                            clearInterval(cooldownInterval);
+                            if(wheelTimer) wheelTimer.style.display = 'none';
+                            spinBtn.disabled = false;
+                            spinBtn.textContent = '🎲 Крутить бесплатно';
+                        }
+                    }, 1000);
+                    
+                    haptic('success');
+                }, 50);
+            }, 4000);
+        }
+
+        function updateSpinCountdown() {
+            if(!spinCountdown) return;
+            const hours = Math.floor(spinCooldown / 3600);
+            const minutes = Math.floor((spinCooldown % 3600) / 60);
+            const seconds = spinCooldown % 60;
+            spinCountdown.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function openWheelModal() {
+            wheelModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeWheelModal() {
+            wheelModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('wheelBtn').addEventListener('click', openWheelModal);
+        wheelCloseBtn.addEventListener('click', closeWheelModal);
+        wheelModal.addEventListener('click', (e) => {
+            if(e.target === wheelModal) closeWheelModal();
+        });
+        if(spinBtn) spinBtn.addEventListener('click', spinWheel);
+
+        function showModal(emoji, title, text) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <div class="modal-emoji">${emoji}</div>
+                    <div class="modal-title">${title}</div>
+                    <div class="modal-text">${text}</div>
+                    <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">Понял!</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            setTimeout(() => {
+                overlay.addEventListener('click', (e) => {
+                    if(e.target === overlay) overlay.remove();
+                });
+            }, 100);
+        }
+
+        const hornsySlider = document.getElementById('hornsySlider');
+        const hornsyValue = document.getElementById('hornsyValue');
+        const hornsyIcon = document.getElementById('hornsyIcon');
+
+        if(hornsySlider) {
+            hornsySlider.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                if(hornsyValue) hornsyValue.textContent = value;
+                if(hornsyIcon) {
+                    if(value >= 4) hornsyIcon.classList.add('pulse-fast');
+                    else hornsyIcon.classList.remove('pulse-fast');
+                }
+                haptic('light');
+                app.s.hornyLevel = value;
+                saveS();
+            });
+        }
+
+        function haptic(type) {
+            const w = window.Telegram?.WebApp;
+            if(!w?.HapticFeedback) return;
+            switch(type) {
+                case 'light': w.HapticFeedback.impactOccurred('light'); break;
+                case 'success': w.HapticFeedback.notificationOccurred('success'); break;
+                case 'warning': w.HapticFeedback.notificationOccurred('warning'); break;
+                case 'error': w.HapticFeedback.notificationOccurred('error'); break;
+            }
+        }
+
+        document.querySelectorAll('button, .tab, .shop-card, .cc, .td, .bq').forEach(btn => {
+            btn.addEventListener('click', () => haptic('light'));
+        });
+
+        function renderQuestCards() {
+            const questsList = document.getElementById('questsL');
+            if(!questsList) return;
+            questsList.innerHTML = '';
+            app.quests.forEach((q, index) => {
+                const progress = q.done ? 100 : 0;
+                const el = document.createElement('div');
+                el.className = `quest-card ${q.done ? 'completed' : ''}`;
+                el.innerHTML = `
+                    <div class="quest-header">
+                        <div class="quest-title">${q.title}</div>
+                        <div class="quest-reward">+${q.reward} 🪙</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="quest-status">${q.done ? '✓ Выполнено' : 'В процессе'}</div>
+                `;
+                questsList.appendChild(el);
+            });
+        }
+
+        const originalRenderQL = window.renderQL;
+        window.renderQL = function() { renderQuestCards(); };
+
+        updateVipUI();
+        renderQuestCards();
+        
+        if(app.s.hornyLevel && hornsySlider) {
+            hornsySlider.value = app.s.hornyLevel;
+            if(hornsyValue) hornsyValue.textContent = app.s.hornyLevel;
+        }
+    </script>
+</body>
+</html>
